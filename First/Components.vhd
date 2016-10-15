@@ -4,6 +4,8 @@ use ieee.std_logic_1164.all;
 
 package ProcessorComponents is
 
+  type OperationCode is (NONE, R_TYPE, I_TYPE, LHI, LM, SM, BEQ, JAL, JLR);
+
   component ClockDivider is
   port (
     clk, reset: in std_logic;
@@ -117,6 +119,13 @@ package ProcessorComponents is
     carry: out std_logic;
     zero: out std_logic);
   end component ALU;
+
+  component InstructionDecoder is
+  port (
+    op_code: in std_logic_vector(3 downto 0);
+    output: out OperationCode
+  );
+end component InstructionDecoder;
 
 end package;
 
