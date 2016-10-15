@@ -93,6 +93,22 @@ package ProcessorComponents is
   );
   end component ActiveDecoder;
 
+ component RegisterFile is
+  port (
+    dout1        : out std_logic_vector(15 downto 0);
+    dout2        : out std_logic_vector(15 downto 0);
+    din          : in  std_logic_vector(15 downto 0);
+    register_write : in  std_logic;
+    readA1       : in  std_logic_vector(2 downto 0);
+    readA2       : in  std_logic_vector(2 downto 0);
+    writeA3      : in  std_logic_vector(2 downto 0);
+    PC_write     : in  std_logic;
+    PC_in        : in std_logic_vector(15 downto 0);
+    PC_out       : out  std_logic_vector(15 downto 0);
+    clk          : in  std_logic
+  );
+  end component RegisterFile;
+
 end package;
 
 library ieee;
