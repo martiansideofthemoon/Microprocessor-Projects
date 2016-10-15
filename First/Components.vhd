@@ -56,6 +56,34 @@ package ProcessorComponents is
   );
   end component PriorityLoop;
 
+  component SignExtender9 is
+  port (
+    input: in std_logic_vector(8 downto 0);
+    output: out std_logic_vector(15 downto 0)
+  );
+  end component SignExtender9;
+
+  component SignExtender6 is
+  port (
+    input: in std_logic_vector(5 downto 0);
+    output: out std_logic_vector(15 downto 0)
+  );
+  end component SignExtender6;
+
+  component LSBZeroPad is
+  port (
+    input: in std_logic_vector(9 downto 0);
+    output: out std_logic_vector(15 downto 0)
+  );
+  end component LSBZeroPad;
+
+  component LeftShift is
+  port (
+    input: in std_logic_vector(15 downto 0);
+    output: out std_logic_vector(15 downto 0)
+  );
+  end component LeftShift;
+
 end package;
 
 library ieee;
@@ -78,4 +106,73 @@ begin
   end process;
 end Behave;
 
+library ieee;
+use ieee.std_logic_1164.all;
+entity SignExtender9 is
+port (
+  input: in std_logic_vector(8 downto 0);
+  output: out std_logic_vector(15 downto 0)
+);
+end entity SignExtender9;
+architecture Behave of SignExtender9 is
+begin
+output(8 downto 0) <= input(8 downto 0);
+output(9) <= input(8);
+output(10) <= input(8);
+output(11) <= input(8);
+output(12) <= input(8);
+output(13) <= input(8);
+output(14) <= input(8);
+output(15) <= input(8);
+end Behave;
 
+library ieee;
+use ieee.std_logic_1164.all;
+entity SignExtender6 is
+port (
+  input: in std_logic_vector(8 downto 0);
+  output: out std_logic_vector(15 downto 0)
+);
+end entity SignExtender6;
+architecture Behave of SignExtender6 is
+begin
+output(5 downto 0) <= input(5 downto 0);
+output(6) <= input(5);
+output(7) <= input(5);
+output(8) <= input(5);
+output(9) <= input(5);
+output(10) <= input(5);
+output(11) <= input(5);
+output(12) <= input(5);
+output(13) <= input(5);
+output(14) <= input(5);
+output(15) <= input(5);
+end Behave;
+
+library ieee;
+use ieee.std_logic_1164.all;
+entity LSBZeroPad is
+port (
+  input: in std_logic_vector(8 downto 0);
+  output: out std_logic_vector(15 downto 0)
+);
+end entity LSBZeroPad;
+architecture Behave of LSBZeroPad is
+begin
+output(15 downto 7) <= input(8 downto 0);
+output(6 downto 0) <= "0000000";
+end Behave;
+
+library ieee;
+use ieee.std_logic_1164.all;
+entity LeftShift is
+port (
+  input: in std_logic_vector(15 downto 0);
+  output: out std_logic_vector(15 downto 0)
+);
+end entity LeftShift;
+architecture Behave of LeftShift is
+begin
+output(15 downto 1) <= input(14 downto 0);
+output(0) <= '0';
+end Behave;
