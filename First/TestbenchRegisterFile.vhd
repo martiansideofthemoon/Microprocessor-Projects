@@ -12,9 +12,9 @@ architecture Behave of TestbenchRegisterFile is
   signal dout2: std_logic_vector(15 downto 0);
   signal din : std_logic_vector(15 downto 0);
   signal register_write: std_logic;
-  signal readA1: std_logic_vector(2 downto 0);
-  signal readA2: std_logic_vector(2 downto 0);
-  signal writeA3: std_logic_vector(2 downto 0);
+  signal readA1: std_logic_vector(2 downto 0) := "000";
+  signal readA2: std_logic_vector(2 downto 0) := "000";
+  signal writeA3: std_logic_vector(2 downto 0) := "000";
   signal PC_write: std_logic;
   signal PC_in: std_logic_vector(15 downto 0);
   signal PC_out: std_logic_vector(15 downto 0);
@@ -29,6 +29,20 @@ architecture Behave of TestbenchRegisterFile is
       return(ret_val);
   end to_string;
 
+  function to_std_logic_vector(x: bit_vector) return std_logic_vector is
+    alias lx: bit_vector(1 to x'length) is x;
+    variable ret_var : std_logic_vector(1 to x'length);
+  begin
+     for I in 1 to x'length loop
+        if(lx(I) = '1') then
+           ret_var(I) :=  '1';
+        else
+           ret_var(I) :=  '0';
+  end if;
+     end loop;
+     return(ret_var);
+  end to_std_logic_vector;
+
   function to_std_logic(x: bit) return std_logic is
       variable ret_val: std_logic;
   begin
@@ -39,20 +53,6 @@ architecture Behave of TestbenchRegisterFile is
       end if;
       return(ret_val);
   end to_std_logic;
-
-  function to_std_logic_vector(x: bit_vector) return std_logic_vector is
-    alias lx: bit_vector(1 to x'length) is x;
-    variable ret_var : std_logic_vector(1 to x'length);
-  begin
-     for I in 1 to x'length loop
-        if(lx(I) = '1') then
-           ret_var(I) :=  '1';
-        else
-           ret_var(I) :=  '0';
-	end if;
-     end loop;
-     return(ret_var);
-  end to_std_logic_vector;
 
 begin
   clk <= not clk after 5 ns; -- assume 10ns clock.
@@ -89,6 +89,13 @@ begin
 
   begin
     wait until clk = '1';
+    PC_write <= '1';
+    PC_in <= "0000000000000000";
+    register_write <= '1';
+    writeA3 <= "000";
+    din <= "0000000000000000";
+
+    wait until clk = '1';
 
     while not endfile(INFILE) loop
       readLine(INFILE, INPUT_LINE);
@@ -103,7 +110,7 @@ begin
       register_write <= to_std_logic(reg_write);
       PC_write <= to_std_logic(pc_w);
       readA1 <= to_std_logic_vector(ra1);
-      readA1 <= to_std_logic_vector(ra2);
+      readA2 <= to_std_logic_vector(ra2);
       writeA3 <= to_std_logic_vector(wa3);
       din <= to_std_logic_vector(di);
       PC_in <= to_std_logic_vector(p_in);
