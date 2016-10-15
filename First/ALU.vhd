@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library work;
 use work.ProcessorComponents.all;
 entity ALU is
@@ -10,18 +11,22 @@ entity ALU is
         zero: out std_logic);
 end entity;
 architecture Struct of ALU is
+  signal alu_out_read : std_logic_vector(15 downto 0);
 begin
     
-   zero <= '1' when alu_out = '0' else '0';
-   carry <= '1' when alu_in_1 > alu_out else '0';
+   alu_out <= alu_out_read;
+   zero <= '1' when alu_out_read = "0000000000000000" else '0';
+   carry <= '1' when alu_in_1 > alu_out_read else '0';
       
-   process(op_in,alu_in_1,alu_in_2)
-  
+   process(op_in, alu_in_1, alu_in_2)
+   begin
+
    if(op_in = '0') then
-      alu_out <= alu_in_1 + alu_in_2;
+      alu_out_read <= std_logic_vector(unsigned(alu_in_1) + unsigned(alu_in_2));
    else  
-      alu_out <= alu_in_1 nand alu_in_2;
+      alu_out_read <= alu_in_1 nand alu_in_2;
    end if;
    
    end process;
+
 end Struct;
