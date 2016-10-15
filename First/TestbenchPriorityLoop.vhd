@@ -11,6 +11,7 @@ architecture Behave of TestbenchPriorityLoop is
   signal input: std_logic_vector(7 downto 0);
   signal output: std_logic_vector(2 downto 0);
   signal priority_select: std_logic;
+  signal input_zero: std_logic;
   signal clk: std_logic := '0';
   signal reset: std_logic := '1';
 
@@ -114,7 +115,8 @@ begin
     input => input,
     priority_select => priority_select,
     clock => clk,
-    output => output
+    output => output,
+    input_zero => input_zero
   );
 
 end Behave;

@@ -3,6 +3,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 
+
 entity PriorityEncoder is
   port (
     din: in std_logic_vector(7 downto 0);
@@ -79,6 +80,7 @@ entity PriorityLoop is
   port (
     input: in std_logic_vector(7 downto 0);
     priority_select, clock: in std_logic;
+    input_zero: out std_logic;
     output: out std_logic_vector(2 downto 0)
   );
 end entity PriorityLoop;
@@ -99,6 +101,7 @@ begin
                 enable => '1',
                 clk => clock
               );
+  input_zero <= '1' when priority_in = "00000000" else '0';
   encoder: PriorityEncoder
            port map (
               din => priority_in,
@@ -106,9 +109,9 @@ begin
            );
   output <= priority_out;
   demux1: Demux
-         port map (
+          port map (
             din => priority_out,
             dout => demux_out
-         );
+          );
   feedback <= demux_out xor priority_in;
 end Struct;

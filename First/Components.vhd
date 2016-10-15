@@ -51,6 +51,7 @@ package ProcessorComponents is
   port (
     input: in std_logic_vector(7 downto 0);
     priority_select, clock: in std_logic;
+    input_zero: out std_logic;
     output: out std_logic_vector(2 downto 0)
   );
   end component PriorityLoop;
