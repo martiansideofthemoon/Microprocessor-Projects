@@ -84,6 +84,15 @@ package ProcessorComponents is
   );
   end component LeftShift;
 
+  component ActiveDecoder is
+  port (
+    instruction: in std_logic_vector(1 downto 0);
+    carry: in std_logic;
+    zero: in std_logic;
+    active: out std_logic
+  );
+  end component ActiveDecoder;
+
 end package;
 
 library ieee;
