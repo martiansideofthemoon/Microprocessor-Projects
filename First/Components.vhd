@@ -108,6 +108,15 @@ package ProcessorComponents is
     clk          : in  std_logic
   );
   end component RegisterFile;
+ 
+ component ALU is
+  port (
+    alu_in_1, alu_in_2: in std_logic_vector(15 downto 0);
+    op_in: in std_logic;
+    alu_out: out std_logic_vector(15 downto 0);
+    carry: out std_logic;
+    zero: out std_logic);
+  end component ALU;
 
 end package;
 
