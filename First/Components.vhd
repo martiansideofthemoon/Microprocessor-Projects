@@ -2,7 +2,7 @@ library std;
 library ieee;
 use ieee.std_logic_1164.all;
 
-package ADCCComponents is
+package ProcessorComponents is
 
   component ClockDivider is
   port (
