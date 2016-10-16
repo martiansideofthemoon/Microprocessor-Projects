@@ -9,9 +9,9 @@ entity TestbenchMemory is
 end entity;
 architecture Behave of TestbenchMemory is
   signal mem_out: std_logic_vector(15 downto 0);
-  signal data: std_logic_vector(15 downto 0);
+  signal data: std_logic_vector(15 downto 0) := "0000000000000000";
   signal addr : std_logic_vector(15 downto 0) := "0000000000000000";
-  signal mem_write: std_logic;
+  signal mem_write: std_logic := '0';
   signal clk: std_logic := '0';
   signal reset: std_logic := '1';
 
@@ -76,11 +76,7 @@ begin
     variable LINE_COUNT: integer := 0;
 
   begin
-    wait until clk = '1';
-    mem_write <= '1';
     addr <= "0000000000000000";
-    data <= "0000000000000000";
-
     wait until clk = '1';
 
     while not endfile(INFILE) loop
@@ -95,11 +91,7 @@ begin
 
       wait until clk = '0';
 
-        readLine(INFILE, INPUT_LINE);
-        read(INPUT_LINE, dout);
-        LINE_COUNT := LINE_COUNT + 1;
-
-        if (mem_out /= to_std_logic_vector(dout)) then
+        if (m_write /= '1' and mem_out /= to_std_logic_vector(din)) then
           write(OUTPUT_LINE,to_string("ERROR: in RESULT , line "));
           write(OUTPUT_LINE, LINE_COUNT);
           writeline(OUTFILE, OUTPUT_LINE);
