@@ -110,7 +110,17 @@ package ProcessorComponents is
     clk          : in  std_logic
   );
   end component RegisterFile;
- 
+
+  component Memory is
+  port (
+    mem_out      : out std_logic_vector(15 downto 0);
+    data         : in std_logic_vector(15 downto 0);
+    addr         : in  std_logic_vector(15 downto 0);
+    mem_write    : in  std_logic;
+    clk          : in  std_logic
+  );
+  end component;
+
  component ALU is
   port (
     alu_in_1, alu_in_2: in std_logic_vector(15 downto 0);
