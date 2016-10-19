@@ -7,6 +7,6 @@ for i in range(0, 256):
 		if j == '1':
 			output += "{0:03b}".format(index) + "\n"
 
-f = open('../Tracefiles/tracefile_priority.txt', 'w')
+f = open('Tracefiles/tracefile_priority.txt', 'w')
 f.write(output)
 f.close()

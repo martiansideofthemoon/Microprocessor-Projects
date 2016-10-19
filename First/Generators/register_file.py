@@ -23,6 +23,6 @@ for pr in range(2, -1, -1):
 					regs[7] = PC_in
 				output += str(reg_write) + " " + str(pc_write) + " " + reada1 + " " + reada2 + " " + writea3 + " "  +  din + " " + PC_in + "\n"
 				output += dout1 + " " + dout2 + " " + PC_out + "\n"
-f = open('../Tracefiles/tracefile_register_file.txt', 'w')
+f = open('Tracefiles/tracefile_register_file.txt', 'w')
 f.write(output)
 f.close()
