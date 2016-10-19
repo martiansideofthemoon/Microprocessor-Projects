@@ -37,6 +37,16 @@ TOKEN_DATA = {
   'jlr': (OP_CODE, VALUE, COMMA, VALUE),
   'org': (OP_CODE, VALUE)
 }
+# Provides the relative swaps of indices for opcodes
+REORDER_DATA = {
+  'add': ((1,3),(3,5)),
+  'adc': ((1,3),(3,5)),
+  'adz': ((1,3),(3,5)),
+  'ndu': ((1,3),(3,5)),
+  'ndz': ((1,3),(3,5)),
+  'ndc': ((1,3),(3,5)),
+  'adi': ((1,3),)
+}
 INS_DATA = {
   'add': ("0000", REGISTER, REGISTER, REGISTER, "000\n"),
   'adc': ("0000", REGISTER, REGISTER, REGISTER, "010\n"),
@@ -65,6 +75,15 @@ REGEX_DATA = (
   (r'^r[0-7]$', VALUE, REGISTER)
 )
 
+def reorder_tokens(tokens):
+  for i in range(0, len(tokens)):
+    if tokens[i][1] in REORDER_DATA:
+      swaps = REORDER_DATA[tokens[i][1]]
+      for swap in swaps:
+        if i+swap[0] >= len(tokens) or i+swap[1] >= len(tokens):
+          return
+        else:
+          tokens[i+swap[0]], tokens[i+swap[1]] = tokens[i+swap[1]], tokens[i+swap[0]]
 
 def get_peripherals(bin_format, format_pointer):
   '''
@@ -198,6 +217,9 @@ with open(file_name, 'r') as f:
       word_tokens = get_tokens(word.lower(), number+1)
       tokens.extend(word_tokens)
 
+# Needed as some instructions have a different order of tokens
+reorder_tokens(tokens)
+
 # An OP_CODE needed in the start
 next_expected = OP_CODE
 instruction = ()
@@ -207,7 +229,7 @@ token_pointer = 0
 # Final output hex sequence
 output = ""
 
-for token in tokens:
+for num, token in enumerate(tokens):
   # Throw an error if ordering of tokens in not correct
   if token[0] != next_expected:
     print "Expected " + next_expected + " but found " + token[0] + " in " + token[1] + " of line " + str(token[2])
