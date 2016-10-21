@@ -70,7 +70,6 @@ begin
     variable nstate: FsmState;
   begin
     nstate := S0;
-    report FsmState'image(state);
     case state is
       when S0 =>
         nstate := S1;
