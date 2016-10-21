@@ -51,7 +51,7 @@ architecture Behave of TestbenchMemory is
 begin
   clk <= not clk after 5 ns; -- assume 10ns clock.
 
-  -- reset process
+    -- reset process
   process
   begin
      wait until clk = '1';

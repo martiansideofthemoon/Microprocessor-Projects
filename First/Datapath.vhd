@@ -10,7 +10,7 @@ entity Datapath is
 
     -- Program counter write / select
     pc_write: in std_logic;
-    pc_in_select: in std_logic;
+    pc_in_select: in std_logic_vector(1 downto 0);
 
     -- Select the two ALU inputs / op_code
     alu_op: in std_logic;
@@ -33,6 +33,7 @@ entity Datapath is
 
     -- Control signals which decide whether or not to set carry flag
     set_carry, set_zero: in std_logic;
+    carry_enable_select, zero_enable_select: in std_logic;
 
     -- Choice between input register and feedback
     pl_select: in std_logic;
@@ -66,8 +67,10 @@ architecture Mixed of Datapath is
   signal CONST_2: std_logic_vector(15 downto 0) := (1 => '1', others => '0');
 
   -- Instruction Register signals
-  signal INSTRUCTION: std_logic_vector(15 downto 0);
+  signal INSTRUCTION: std_logic_vector(15 downto 0) := (others => '0');
   signal INST_ALU: std_logic;
+  signal INST_CARRY: std_logic;
+  signal INST_ZERO: std_logic;
 
   -- Memory signals
   signal ADDRESS_in: std_logic_vector(15 downto 0);
@@ -114,6 +117,8 @@ architecture Mixed of Datapath is
   signal ZERO_in: std_logic_vector(0 downto 0);
   signal CARRY: std_logic_vector(0 downto 0);
   signal ZERO: std_logic_vector(0 downto 0);
+  signal CARRY_ENABLE: std_logic;
+  signal ZERO_ENABLE: std_logic;
 
   -- Priority Loop Registers
   signal PL_INPUT: std_logic_vector(7 downto 0);
@@ -145,7 +150,8 @@ begin
   MEMWRITE <= mem_write when reset = '0' else external_mem_write;
 
   -- Program Counter Dataflow logic
-  PC_in <= ALU_out when pc_in_select = '0' else
+  PC_in <= CONST_0 when pc_in_select = "00" else
+           ALU_out when pc_in_select = "01" else
            T2_out;
 
   -- Register File Dataflow
@@ -163,6 +169,8 @@ begin
   zero_flag <= ZERO(0);
   CARRY_in(0) <= ALU_carry;
   ZERO_in(0) <= ALU_zero;
+  CARRY_ENABLE <= INST_CARRY when carry_enable_select = '1' else set_carry;
+  ZERO_ENABLE <= INST_ZERO when zero_enable_select = '1' else set_zero;
 
   -- Priority Loop data flow logic
   PL_INPUT <= INSTRUCTION(7 downto 0);
@@ -180,7 +188,9 @@ begin
       port map (
         op_code => INSTRUCTION(15 downto 12),
         output => inst_type,
-        alu_out => INST_ALU
+        alu_op => INST_ALU,
+        alu_carry => INST_CARRY,
+        alu_zero => INST_ZERO
       );
   AD: ActiveDecoder
       port map (
@@ -284,7 +294,7 @@ begin
       port map (
         Din => CARRY_in,
         Dout => CARRY,
-        Enable => set_carry,
+        Enable => CARRY_ENABLE,
         clk => clk
       );
   ZR: DataRegister
@@ -292,7 +302,7 @@ begin
       port map (
         Din => ZERO_in,
         Dout => ZERO,
-        Enable => set_zero,
+        Enable => ZERO_ENABLE,
         clk => clk
       );
 

@@ -19,7 +19,7 @@ architecture Struct of TopLevel is
 
   -- Program counter write / select
   signal pc_write: std_logic;
-  signal pc_in_select: std_logic;
+  signal pc_in_select: std_logic_vector(1 downto 0);
 
   -- Select the two ALU inputs / op_code
   signal alu_op: std_logic;
@@ -44,6 +44,8 @@ architecture Struct of TopLevel is
   -- Control signals which decide whether or not to set carry flag
   signal set_carry: std_logic;
   signal set_zero: std_logic;
+  signal carry_enable_select: std_logic;
+  signal zero_enable_select: std_logic;
 
   -- Choice between input register and feedback
   signal pl_select: std_logic;
@@ -82,6 +84,8 @@ CP: Controller
     t2_write => t2_write,
     set_carry => set_carry,
     set_zero => set_zero,
+    carry_enable_select => carry_enable_select,
+    zero_enable_select => zero_enable_select,
     pl_select => pl_select,
     active => active,
     plinput_zero => plinput_zero,
@@ -111,6 +115,8 @@ DP: Datapath
     t2_write => t2_write,
     set_carry => set_carry,
     set_zero => set_zero,
+    carry_enable_select => carry_enable_select,
+    zero_enable_select => zero_enable_select,
     pl_select => pl_select,
     active => active,
     plinput_zero => plinput_zero,

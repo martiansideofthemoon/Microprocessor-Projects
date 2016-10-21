@@ -6,21 +6,35 @@ entity InstructionDecoder is
   port (
     op_code: in std_logic_vector(3 downto 0);
     output: out OperationCode;
-    alu_out: out std_logic
+    alu_op: out std_logic;
+    alu_carry: out std_logic;
+    alu_zero: out std_logic
   );
 end entity InstructionDecoder;
 
 architecture Struct of InstructionDecoder is
 begin
   process(op_code)
-  variable nalu_out: std_logic := '0';
+  variable nalu_op: std_logic := '0';
+  variable nalu_carry: std_logic := '0';
+  variable nalu_zero: std_logic := '0';
   begin
     if (op_code = "0000" or op_code = "0001") then
-      nalu_out := '0';
+      nalu_op := '0';
+      nalu_carry := '1';
+      nalu_zero := '1';
+    elsif (op_code = "0010" or op_code = "0100") then
+      nalu_op := '1';
+      nalu_carry := '0';
+      nalu_zero := '1';
     else
-      nalu_out := '1';
+      nalu_op := '0';
+      nalu_carry := '0';
+      nalu_zero := '0';
     end if;
-    alu_out <= nalu_out;
+    alu_op <= nalu_op;
+    alu_carry <= nalu_carry;
+    alu_zero <= nalu_zero;
   end process;
   process(op_code)
   begin

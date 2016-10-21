@@ -134,7 +134,9 @@ package ProcessorComponents is
   port (
     op_code: in std_logic_vector(3 downto 0);
     output: out OperationCode;
-    alu_out: out std_logic
+    alu_op: out std_logic;
+    alu_carry: out std_logic;
+    alu_zero: out std_logic
   );
   end component InstructionDecoder;
 
@@ -145,7 +147,7 @@ package ProcessorComponents is
 
     -- Program counter write / select
     pc_write: in std_logic;
-    pc_in_select: in std_logic;
+    pc_in_select: in std_logic_vector(1 downto 0);
 
     -- Select the two ALU inputs / op_code
     alu_op: in std_logic;
@@ -168,6 +170,7 @@ package ProcessorComponents is
 
     -- Control signals which decide whether or not to set carry flag
     set_carry, set_zero: in std_logic;
+    carry_enable_select, zero_enable_select: in std_logic;
 
     -- Choice between input register and feedback
     pl_select: in std_logic;
@@ -202,7 +205,7 @@ package ProcessorComponents is
 
     -- Program counter write / select
     pc_write: out std_logic;
-    pc_in_select: out std_logic;
+    pc_in_select: out std_logic_vector(1 downto 0);
 
     -- Select the two ALU inputs / op_code
     alu_op: out std_logic;
@@ -225,6 +228,7 @@ package ProcessorComponents is
 
     -- Control signals which decide whether or not to set carry flag
     set_carry, set_zero: out std_logic;
+    carry_enable_select, zero_enable_select: out std_logic;
 
     -- Choice between input register and feedback
     pl_select: out std_logic;

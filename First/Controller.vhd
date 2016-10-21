@@ -10,7 +10,7 @@ entity Controller is
 
     -- Program counter write / select
     pc_write: out std_logic;
-    pc_in_select: out std_logic;
+    pc_in_select: out std_logic_vector;
 
     -- Select the two ALU inputs / op_code
     alu_op: out std_logic;
@@ -33,6 +33,7 @@ entity Controller is
 
     -- Control signals which decide whether or not to set carry flag
     set_carry, set_zero: out std_logic;
+    carry_enable_select, zero_enable_select: out std_logic;
 
     -- Choice between input register and feedback
     pl_select: out std_logic;
@@ -55,7 +56,7 @@ entity Controller is
   );
 end entity;
 architecture Struct of Controller is
-  type FsmState is (S0, S1, S2, S3);
+  type FsmState is (S0, S1, S2, S3, S4, S5, end_state);
   signal state: FsmState;
 begin
 
@@ -70,13 +71,21 @@ begin
       when S1 =>
         nstate := S2;
       when S2 =>
-        if inst_type = R_TYPE then
+        if inst_type = R_TYPE and active = '1' then
           nstate := S3;
+        elsif inst_type = I_TYPE then
+          nstate := S5;
         else
-          nstate := S1;
+          nstate := end_state;
         end if;
       when S3 =>
-        nstate := S0;
+        nstate := S4;
+      when S4 =>
+        nstate := end_state;
+      when S5 =>
+        nstate := end_state;
+      when end_state =>
+        nstate := S1;
     end case;
 
     if(clk'event and clk = '1') then
@@ -89,10 +98,10 @@ begin
   end process;
 
   -- Control Signal process
-  process(state)
+  process(state, reset)
     variable n_inst_write: std_logic;
     variable n_pc_write: std_logic;
-    variable n_pc_in_select: std_logic;
+    variable n_pc_in_select: std_logic_vector(1 downto 0);
     variable n_alu_op: std_logic;
     variable n_alu_op_select: std_logic;
     variable n_alu1_select: std_logic_vector(1 downto 0);
@@ -109,11 +118,13 @@ begin
     variable n_t2_write: std_logic;
     variable n_set_carry: std_logic;
     variable n_set_zero: std_logic;
+    variable n_carry_enable_select: std_logic;
+    variable n_zero_enable_select: std_logic;
     variable n_pl_select: std_logic;
   begin
     n_inst_write := '0';
     n_pc_write := '0';
-    n_pc_in_select := '0';
+    n_pc_in_select := "00";
     n_alu_op := '0';
     n_alu_op_select := '0';
     n_alu1_select := "00";
@@ -130,19 +141,178 @@ begin
     n_t2_write := '0';
     n_set_carry := '0';
     n_set_zero := '0';
+    n_carry_enable_select := '0';
+    n_zero_enable_select := '0';
     n_pl_select := '0';
 
     case state is
       when S0 =>
+        n_inst_write := '0';
+        n_pc_write := '1';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
       when S1 =>
+        n_inst_write := '1';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
       when S2 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '1';
+        n_t2_write := '1';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
       when S3 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '1';
+        n_alu1_select := "01";
+        n_alu2_select := "001";
+        n_alureg_write := '1';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '1';
+        n_set_zero := '1';
+        n_carry_enable_select := '1';
+        n_zero_enable_select := '1';
+        n_pl_select := '0';
+      when S4 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '1';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+      when S5 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+      when end_state =>
+        n_inst_write := '0';
+        n_pc_write := '1';
+        n_pc_in_select := "01";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
     end case;
 
     if reset = '1' then
       inst_write <= '0';
       pc_write <= '0';
-      pc_in_select <= '0';
+      pc_in_select <= "00";
       alu_op <= '0';
       alu_op_select <= '0';
       alu1_select <= "00";
@@ -159,6 +329,8 @@ begin
       t2_write <= '0';
       set_carry <= '0';
       set_zero <= '0';
+      carry_enable_select <= '0';
+      zero_enable_select <= '0';
       pl_select <= '0';
     else
       inst_write <= n_inst_write;
@@ -180,6 +352,8 @@ begin
       t2_write <= n_t2_write;
       set_carry <= n_set_carry;
       set_zero <= n_set_zero;
+      carry_enable_select <= n_carry_enable_select;
+      zero_enable_select <= n_zero_enable_select;
       pl_select <= n_pl_select;
     end if;
   end process;
