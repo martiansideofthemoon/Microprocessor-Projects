@@ -169,7 +169,7 @@ begin
 
   -- Instruction Register and Decoder Port Maps
   IR: DataRegister
-      generic map (data_width => 15)
+      generic map (data_width => 16)
       port map (
         Din => MEM_out,
         Dout => INSTRUCTION,
@@ -206,7 +206,7 @@ begin
         din => REGDATA_in
       );
   T1: DataRegister
-      generic map (data_width => 15)
+      generic map (data_width => 16)
       port map (
         Din => DATA1,
         Dout => T1_out,
@@ -214,7 +214,7 @@ begin
         clk => clk
       );
   T2: DataRegister
-      generic map (data_width => 15)
+      generic map (data_width => 16)
       port map (
         Din => DATA2,
         Dout => T2_out,
@@ -237,7 +237,7 @@ begin
         mem_out => MEM_out
       );
   T4: DataRegister
-      generic map (data_width => 15)
+      generic map (data_width => 16)
       port map (
         Din => MEM_out,
         Dout => MEMREG_out,
@@ -272,7 +272,7 @@ begin
         zero => ALU_zero
       );
   T3: DataRegister
-      generic map (data_width => 15)
+      generic map (data_width => 16)
       port map (
         Din => ALU_out,
         Dout => ALUREG_out,

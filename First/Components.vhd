@@ -247,6 +247,15 @@ package ProcessorComponents is
   );
   end component;
 
+  component TopLevel is
+    port (
+      clk, reset: in std_logic;
+      -- Data coming from outside
+      external_addr: in std_logic_vector(15 downto 0);
+      external_data: in std_logic_vector(15 downto 0);
+      external_mem_write: in std_logic
+    );
+  end component;
 end package;
 
 library ieee;

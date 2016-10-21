@@ -9,7 +9,6 @@ use work.ProcessorComponents.all;
 entity Testbench is
 end entity;
 architecture Behave of Testbench is
-  signal mem_out: std_logic_vector(15 downto 0);
   signal data: std_logic_vector(15 downto 0) := "0000000000000000";
   signal addr : std_logic_vector(15 downto 0) := "0000000000000000";
   signal mem_write: std_logic := '0';
@@ -52,14 +51,6 @@ architecture Behave of Testbench is
 begin
   clk <= not clk after 5 ns; -- assume 10ns clock.
 
-  -- reset process
-  process
-  begin
-     wait until clk = '1';
-     reset <= '0';
-     wait;
-  end process;
-
   process
     variable err_flag : boolean := false;
     File INFILE: text open read_mode is "abc.hex";
@@ -101,16 +92,18 @@ begin
     	wait until clk = '1';
     end loop;
 
+    reset <= '0';
+
     wait;
   end process;
 
-  dut: Memory
+  dut: TopLevel
   port map (
-    mem_out => mem_out,
-    data => data,
-    addr => addr,
-    mem_write => mem_write,
-    clk => clk
+    clk => clk,
+    reset => reset,
+    external_addr => addr,
+    external_data => data,
+    external_mem_write => mem_write
   );
 end Behave;
 
