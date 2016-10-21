@@ -19,7 +19,7 @@ architecture Struct of Memory is
   type mem_cell is array(0 to 255) of std_logic_vector(7 downto 0);
   type mem is array(0 to 255) of mem_cell;
   --signal memory_low : Memory;
-  signal mem_array: mem;
+  signal mem_array: mem := (others => (others => (others => '0')));
   signal addr_plus: std_logic_vector(15 downto 0);
 begin
   addr_plus <= std_logic_vector(unsigned(addr) + 1);
