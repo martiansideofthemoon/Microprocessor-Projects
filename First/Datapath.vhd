@@ -5,24 +5,58 @@ library work;
 use work.ProcessorComponents.all;
 entity Datapath is
   port (
-    inst_write, mem_write, memreg_write: in std_logic;
-    pc_write, reg_write, t1_write, t2_write: in std_logic;
-    alu_op, alureg_write: in std_logic;
+    -- Instruction Register write
+    inst_write: in std_logic;
+
+    -- Program counter write / select
+    pc_write: in std_logic;
     pc_in_select: in std_logic;
+
+    -- Select the two ALU inputs / op_code
+    alu_op: in std_logic;
     alu_op_select: in std_logic;
     alu1_select: in std_logic_vector(1 downto 0);
     alu2_select: in std_logic_vector(2 downto 0);
+    alureg_write: in std_logic;
+
+    -- Select the correct inputs to memory
     addr_select: in std_logic_vector(1 downto 0);
+    mem_write: in std_logic;
+    memreg_write: in std_logic;
+
+    -- Choices for Register file
     regread2_select: in std_logic;
     regdata_select: in std_logic_vector(1 downto 0);
     regwrite_select: in std_logic_vector(1 downto 0);
+    reg_write: in std_logic;
+    t1_write, t2_write: in std_logic;
+
+    -- Control signals which decide whether or not to set carry flag
     set_carry, set_zero: in std_logic;
+
+    -- Choice between input register and feedback
     pl_select: in std_logic;
+
+    -- Active signal, if high ADC / ADZ / NDC / NDZ executed
     active: out std_logic;
+
+    -- Returns whether priority loop input is zero or not
     plinput_zero: out std_logic;
+
+    -- Used to transition from S2
     inst_type: out OperationCode;
+
+    -- zero flag which is useful for BEQ control
     zero_flag: out std_logic;
-    clk, reset: in std_logic
+
+    -- clock and reset pins, if reset is high, external memory signals
+    -- active.
+    clk, reset: in std_logic;
+
+    -- Data coming from outside
+    external_addr: in std_logic_vector(15 downto 0);
+    external_data: in std_logic_vector(15 downto 0);
+    external_mem_write: in std_logic
   );
 end entity;
 
@@ -39,6 +73,7 @@ architecture Mixed of Datapath is
   signal ADDRESS_in: std_logic_vector(15 downto 0);
   signal MEMDATA_in: std_logic_vector(15 downto 0);
   signal MEM_out: std_logic_vector(15 downto 0);
+  signal MEMWRITE: std_logic;
 
   -- Memory Register (T4)
   signal MEMREG_out: std_logic_vector(15 downto 0);
@@ -101,11 +136,13 @@ begin
                 INST_ALU when alu_op_select = '1';
 
   -- Memory Dataflow logic
-  ADDRESS_in <= PC_out when addr_select = "00" else
-                ALU_out when addr_select = "01" else
-                T1_out when addr_select = "10" else
-                CONST_0;
-  MEMDATA_in <= T2_out;
+  ADDRESS_in <= external_addr when reset = '1' else
+                PC_out when reset = '0' and addr_select = "00" else
+                ALU_out when reset = '0' and addr_select = "01" else
+                T1_out when reset = '0' and addr_select = "10" else
+                CONST_0 when reset = '0';
+  MEMDATA_in <= T2_out when reset = '0' else external_data;
+  MEMWRITE <= mem_write when reset = '0' else external_mem_write;
 
   -- Program Counter Dataflow logic
   PC_in <= ALU_out when pc_in_select = '0' else
@@ -124,8 +161,8 @@ begin
 
   -- Flags data flow logic
   zero_flag <= ZERO(0);
-  CARRY_in <= ALU_carry;
-  ZERO_in <= ALU_zero;
+  CARRY_in(0) <= ALU_carry;
+  ZERO_in(0) <= ALU_zero;
 
   -- Priority Loop data flow logic
   PL_INPUT <= INSTRUCTION(7 downto 0);
@@ -194,7 +231,7 @@ begin
   ME: Memory
       port map (
         clk => clk,
-        mem_write => mem_write,
+        mem_write => MEMWRITE,
         addr => ADDRESS_in,
         data => MEMDATA_in,
         mem_out => MEM_out
