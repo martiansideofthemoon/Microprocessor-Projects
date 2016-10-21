@@ -54,3 +54,40 @@ entity Controller is
     clk, reset: in std_logic
   );
 end entity;
+architecture Struct of Controller is
+  type FsmState is (S0, S1, S2, S3);
+  signal state: FsmState;
+begin
+
+  -- Next state process
+  process(clk, reset, active, inst_type)
+    variable nstate: FsmState;
+  begin
+    nstate := S0;
+    case state is
+      when S0 =>
+        nstate := S1;
+      when S1 =>
+        nstate := S2;
+      when S2 =>
+        if inst_type = R_TYPE then
+          nstate := S3;
+        else
+          nstate := S1;
+        end if;
+      when S3 =>
+        nstate := S0;
+    end case;
+
+    if(clk'event and clk = '1') then
+      if(reset = '1') then
+        state <= S0;
+      else
+        state <= nstate;
+      end if;
+    end if;
+  end process;
+
+  -- Control Signal process
+
+end Struct;
