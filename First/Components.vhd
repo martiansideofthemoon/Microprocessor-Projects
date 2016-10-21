@@ -136,7 +136,64 @@ package ProcessorComponents is
     output: out OperationCode;
     alu_out: out std_logic
   );
-end component InstructionDecoder;
+  end component InstructionDecoder;
+
+  component Datapath is
+  port (
+    -- Instruction Register write
+    inst_write: in std_logic;
+
+    -- Program counter write / select
+    pc_write: in std_logic;
+    pc_in_select: in std_logic;
+
+    -- Select the two ALU inputs / op_code
+    alu_op: in std_logic;
+    alu_op_select: in std_logic;
+    alu1_select: in std_logic_vector(1 downto 0);
+    alu2_select: in std_logic_vector(2 downto 0);
+    alureg_write: in std_logic;
+
+    -- Select the correct inputs to memory
+    addr_select: in std_logic_vector(1 downto 0);
+    mem_write: in std_logic;
+    memreg_write: in std_logic;
+
+    -- Choices for Register file
+    regread2_select: in std_logic;
+    regdata_select: in std_logic_vector(1 downto 0);
+    regwrite_select: in std_logic_vector(1 downto 0);
+    reg_write: in std_logic;
+    t1_write, t2_write: in std_logic;
+
+    -- Control signals which decide whether or not to set carry flag
+    set_carry, set_zero: in std_logic;
+
+    -- Choice between input register and feedback
+    pl_select: in std_logic;
+
+    -- Active signal, if high ADC / ADZ / NDC / NDZ executed
+    active: out std_logic;
+
+    -- Returns whether priority loop input is zero or not
+    plinput_zero: out std_logic;
+
+    -- Used to transition from S2
+    inst_type: out OperationCode;
+
+    -- zero flag which is useful for BEQ control
+    zero_flag: out std_logic;
+
+    -- clock and reset pins, if reset is high, external memory signals
+    -- active.
+    clk, reset: in std_logic;
+
+    -- Data coming from outside
+    external_addr: in std_logic_vector(15 downto 0);
+    external_data: in std_logic_vector(15 downto 0);
+    external_mem_write: in std_logic
+  );
+  end component;
 
 end package;
 
