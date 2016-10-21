@@ -33,6 +33,8 @@ entity Controller is
 
     -- Control signals which decide whether or not to set carry flag
     set_carry, set_zero: out std_logic;
+    -- Decide where to take carry_enable input from. If zero, set_carry
+    -- is taken. Otherwise, IR gives these signals.
     carry_enable_select, zero_enable_select: out std_logic;
 
     -- Choice between input register and feedback
@@ -327,8 +329,8 @@ begin
       reg_write <= '0';
       t1_write <= '0';
       t2_write <= '0';
-      set_carry <= '0';
-      set_zero <= '0';
+      set_carry <= '1';
+      set_zero <= '1';
       carry_enable_select <= '0';
       zero_enable_select <= '0';
       pl_select <= '0';
