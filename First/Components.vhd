@@ -132,11 +132,12 @@ package ProcessorComponents is
 
   component InstructionDecoder is
   port (
-    op_code: in std_logic_vector(3 downto 0);
+    instruction: in std_logic_vector(15 downto 0);
     output: out OperationCode;
     alu_op: out std_logic;
     alu_carry: out std_logic;
-    alu_zero: out std_logic
+    alu_zero: out std_logic;
+    pc_updated: out std_logic
   );
   end component InstructionDecoder;
 
@@ -186,6 +187,9 @@ package ProcessorComponents is
 
     -- zero flag which is useful for BEQ control
     zero_flag: out std_logic;
+
+    -- Tells you whether PC will be updated in this instruction
+    pc_updated: out std_logic;
 
     -- clock and reset pins, if reset is high, external memory signals
     -- active.
@@ -244,6 +248,9 @@ package ProcessorComponents is
 
     -- zero flag which is useful for BEQ control
     zero_flag: in std_logic;
+
+    -- Tells you whether PC will be updated in this instruction
+    pc_updated: in std_logic;
 
     -- clock and reset pins, if reset is high, external memory signals
     -- active.

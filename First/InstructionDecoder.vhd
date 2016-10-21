@@ -4,20 +4,45 @@ library work;
 use work.ProcessorComponents.all;
 entity InstructionDecoder is
   port (
-    op_code: in std_logic_vector(3 downto 0);
+    instruction: in std_logic_vector(15 downto 0);
     output: out OperationCode;
     alu_op: out std_logic;
     alu_carry: out std_logic;
-    alu_zero: out std_logic
+    alu_zero: out std_logic;
+    pc_updated: out std_logic
   );
 end entity InstructionDecoder;
 
 architecture Struct of InstructionDecoder is
+signal op_code: std_logic_vector(3 downto 0);
 begin
+  op_code <= instruction(15 downto 12);
+  process(instruction)
+    variable npc_updated: std_logic := '0';
+  begin
+    if (op_code = "0000" and instruction(5 downto 3) = "111") then
+      npc_updated := '1';
+    elsif (op_code = "0001" and instruction(11 downto 9) = "111") then
+      npc_updated := '1';
+    elsif (op_code = "0010" and instruction(5 downto 3) = "111") then
+      npc_updated := '1';
+    elsif (op_code = "0100" and instruction(11 downto 9) = "111") then
+      npc_updated := '1';
+    elsif (op_code = "0011" and instruction(11 downto 9) = "111") then
+      npc_updated := '1';
+    elsif (op_code = "0110" and instruction(7) = '1') then
+      npc_updated := '1';
+    elsif (op_code = "1100" or op_code = "1000" or op_code = "1001") then
+      npc_updated := '1';
+    else
+      npc_updated := '0';
+    end if;
+    pc_updated <= npc_updated;
+  end process;
   process(op_code)
-  variable nalu_op: std_logic := '0';
-  variable nalu_carry: std_logic := '0';
-  variable nalu_zero: std_logic := '0';
+    variable nalu_op: std_logic := '0';
+    variable nalu_carry: std_logic := '0';
+    variable nalu_zero: std_logic := '0';
   begin
     if (op_code = "0000" or op_code = "0001") then
       nalu_op := '0';

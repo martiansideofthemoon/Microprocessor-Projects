@@ -61,6 +61,9 @@ architecture Struct of TopLevel is
 
   -- zero flag which is useful for BEQ control
   signal zero_flag: std_logic;
+
+  -- Tells you whether PC will be updated in this instruction
+  signal pc_updated: std_logic;
 begin
 
 CP: Controller
@@ -91,6 +94,7 @@ CP: Controller
     plinput_zero => plinput_zero,
     inst_type => inst_type,
     zero_flag => zero_flag,
+    pc_updated => pc_updated,
     clk => clk,
     reset => reset
     );
@@ -122,6 +126,7 @@ DP: Datapath
     plinput_zero => plinput_zero,
     inst_type => inst_type,
     zero_flag => zero_flag,
+    pc_updated => pc_updated,
     clk => clk,
     reset => reset,
     external_addr => external_addr,

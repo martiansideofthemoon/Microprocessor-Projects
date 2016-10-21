@@ -52,6 +52,9 @@ entity Controller is
     -- zero flag which is useful for BEQ control
     zero_flag: in std_logic;
 
+    -- Tells you whether PC will be updated in this instruction
+    pc_updated: in std_logic;
+
     -- clock and reset pins, if reset is high, external memory signals
     -- active.
     clk, reset: in std_logic
@@ -63,10 +66,11 @@ architecture Struct of Controller is
 begin
 
   -- Next state process
-  process(clk, reset, active, inst_type, plinput_zero, zero_flag)
+  process(clk, reset, active, inst_type, plinput_zero, zero_flag, pc_updated)
     variable nstate: FsmState;
   begin
     nstate := S0;
+    report FsmState'image(state);
     case state is
       when S0 =>
         nstate := S1;
@@ -83,9 +87,17 @@ begin
       when S3 =>
         nstate := S4;
       when S4 =>
-        nstate := end_state;
+        if pc_updated = '1' then
+          nstate := S1;
+        else
+          nstate := end_state;
+        end if;
       when S5 =>
-        nstate := end_state;
+        if pc_updated = '1' then
+          nstate := S1;
+        else
+          nstate := end_state;
+        end if;
       when end_state =>
         nstate := S1;
     end case;

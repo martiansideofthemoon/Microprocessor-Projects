@@ -54,6 +54,9 @@ entity Datapath is
     -- active.
     clk, reset: in std_logic;
 
+    -- Tells you whether PC will be updated in this instruction
+    pc_updated: out std_logic;
+
     -- Data coming from outside
     external_addr: in std_logic_vector(15 downto 0);
     external_data: in std_logic_vector(15 downto 0);
@@ -186,11 +189,12 @@ begin
       );
   ID: InstructionDecoder
       port map (
-        op_code => INSTRUCTION(15 downto 12),
+        instruction => INSTRUCTION,
         output => inst_type,
         alu_op => INST_ALU,
         alu_carry => INST_CARRY,
-        alu_zero => INST_ZERO
+        alu_zero => INST_ZERO,
+        pc_updated => pc_updated
       );
   AD: ActiveDecoder
       port map (
