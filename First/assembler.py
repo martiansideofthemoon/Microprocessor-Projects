@@ -233,6 +233,7 @@ for num, token in enumerate(tokens):
   # Throw an error if ordering of tokens in not correct
   if token[0] != next_expected:
     print "Expected " + next_expected + " but found " + token[0] + " in " + token[1] + " of line " + str(token[2])
+    sys.exit(0)
   # Start a new instruction
   if token[0] == OP_CODE:
     # load the instruction token sequence and binary format
