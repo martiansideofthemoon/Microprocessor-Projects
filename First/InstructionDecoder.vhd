@@ -5,12 +5,23 @@ use work.ProcessorComponents.all;
 entity InstructionDecoder is
   port (
     op_code: in std_logic_vector(3 downto 0);
-    output: out OperationCode
+    output: out OperationCode;
+    alu_out: out std_logic
   );
 end entity InstructionDecoder;
 
 architecture Struct of InstructionDecoder is
 begin
+  process(op_code)
+  variable nalu_out: std_logic := '0';
+  begin
+    if (op_code = "0000" or op_code = "0001") then
+      nalu_out := '0';
+    else
+      nalu_out := '1';
+    end if;
+    alu_out <= nalu_out;
+  end process;
   process(op_code)
   begin
     if (op_code = "0000" or op_code = "0010") then

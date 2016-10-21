@@ -74,7 +74,7 @@ package ProcessorComponents is
 
   component LSBZeroPad is
   port (
-    input: in std_logic_vector(9 downto 0);
+    input: in std_logic_vector(8 downto 0);
     output: out std_logic_vector(15 downto 0)
   );
   end component LSBZeroPad;
@@ -133,7 +133,8 @@ package ProcessorComponents is
   component InstructionDecoder is
   port (
     op_code: in std_logic_vector(3 downto 0);
-    output: out OperationCode
+    output: out OperationCode;
+    alu_out: out std_logic
   );
 end component InstructionDecoder;
 
@@ -183,7 +184,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 entity SignExtender6 is
 port (
-  input: in std_logic_vector(8 downto 0);
+  input: in std_logic_vector(5 downto 0);
   output: out std_logic_vector(15 downto 0)
 );
 end entity SignExtender6;
