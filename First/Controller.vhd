@@ -61,7 +61,7 @@ entity Controller is
   );
 end entity;
 architecture Struct of Controller is
-  type FsmState is (S0, S1, S2, S3, S4, S5, end_state);
+  type FsmState is (S0, S1, S2, S3, S4, S5, S6, S7, end_state);
   signal state: FsmState;
 begin
 
@@ -335,11 +335,11 @@ begin
         n_alureg_write := '0';
         n_addr_select := "00";
         n_mem_write := '0';
-        n_memreg_write := '1';
+        n_memreg_write := '0';
         n_regread2_select := '0';
         n_regdata_select := "01";
         n_regwrite_select := "01";
-        n_reg_write := '0';
+        n_reg_write := '1';
         n_t1_write := '0';
         n_t2_write := '0';
         n_set_carry := '0';

@@ -146,7 +146,7 @@ begin
   -- Memory Dataflow logic
   ADDRESS_in <= external_addr when reset = '1' else
                 PC_out when reset = '0' and addr_select = "00" else
-                ALU_out when reset = '0' and addr_select = "01" else
+                ALUREG_out when reset = '0' and addr_select = "01" else
                 T1_out when reset = '0' and addr_select = "10" else
                 CONST_0 when reset = '0';
   MEMDATA_in <= T2_out when reset = '0' else external_data;
@@ -163,7 +163,7 @@ begin
            PL_OUTPUT;
   WRITE3 <= INSTRUCTION(5 downto 3) when regwrite_select = "00" else
             INSTRUCTION(11 downto 9) when regwrite_select = "01" else
-            CONST_0;
+            CONST_0(2 downto 0);
   REGDATA_in <= ALUREG_out when regdata_select = "00" else
                 MEMREG_out when regdata_select = "01" else
                 ZERO_PAD9 when regdata_select = "10" else
