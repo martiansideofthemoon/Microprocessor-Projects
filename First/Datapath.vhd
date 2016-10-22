@@ -115,6 +115,9 @@ architecture Mixed of Datapath is
   -- ALU Register (T3)
   signal ALUREG_out: std_logic_vector(15 downto 0);
 
+  -- Twos Complement for BEQ subtraction
+  signal TwosCmp_out: std_logic_vector(15 downto 0);
+
   -- Flag Register
   signal CARRY_in: std_logic_vector(0 downto 0);
   signal ZERO_in: std_logic_vector(0 downto 0);
@@ -138,6 +141,7 @@ begin
              SE6_out when alu2_select = "010" else
              SE9_out when alu2_select = "011" else
              LEFT_SHIFT6 when alu2_select = "100" else
+             TwosCmp_out when alu2_select = "101" else
              CONST_0;
 
   ALU_opcode <= alu_op when alu_op_select = '0' else
@@ -277,6 +281,11 @@ begin
       port map (
         input => SE6_out,
         output => LEFT_SHIFT6
+      );
+  TwoCmp: TwosComplement
+      port map (
+        input => T2_out,
+        output => TwosCmp_out
       );
 
   AL: ALU

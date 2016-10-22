@@ -72,6 +72,13 @@ package ProcessorComponents is
   );
   end component SignExtender6;
 
+  component TwosComplement is
+  port (
+    input: in std_logic_vector(15 downto 0);
+    output: out std_logic_vector(15 downto 0)
+  );
+  end component TwosComplement;
+
   component LSBZeroPad is
   port (
     input: in std_logic_vector(8 downto 0);
@@ -358,4 +365,18 @@ architecture Behave of LeftShift is
 begin
 output(15 downto 1) <= input(14 downto 0);
 output(0) <= '0';
+end Behave;
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+entity TwosComplement is
+port (
+  input: in std_logic_vector(15 downto 0);
+  output: out std_logic_vector(15 downto 0)
+);
+end entity TwosComplement;
+architecture Behave of TwosComplement is
+begin
+output <= std_logic_vector(unsigned(not input) + 1);
 end Behave;
