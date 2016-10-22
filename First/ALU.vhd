@@ -13,20 +13,20 @@ end entity;
 architecture Struct of ALU is
   signal alu_out_read : std_logic_vector(15 downto 0);
 begin
-    
+
    alu_out <= alu_out_read;
    zero <= '1' when alu_out_read = "0000000000000000" else '0';
    carry <= '1' when alu_in_1(15) = alu_in_2(15) and alu_in_1(14 downto 0) > alu_out_read(14 downto 0) else '0';
-      
+
    process(op_in, alu_in_1, alu_in_2)
    begin
 
    if(op_in = '0') then
       alu_out_read <= std_logic_vector(unsigned(alu_in_1) + unsigned(alu_in_2));
-   else  
+   else
       alu_out_read <= alu_in_1 nand alu_in_2;
    end if;
-   
+
    end process;
 
 end Struct;

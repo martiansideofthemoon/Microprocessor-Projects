@@ -61,7 +61,7 @@ entity Controller is
   );
 end entity;
 architecture Struct of Controller is
-  type FsmState is (S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, end_state);
+  type FsmState is (S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S13, S14, end_state);
   signal state: FsmState;
 begin
 
@@ -84,6 +84,8 @@ begin
           nstate := S9;
         elsif inst_type = LHI then
           nstate := S11;
+        elsif inst_type = JLR then
+          nstate := S13;
         else
           nstate := end_state;
         end if;
@@ -131,6 +133,10 @@ begin
         else
           nstate := end_state;
         end if;
+      when S13 =>
+          nstate := S14;
+      when S14 =>
+          nstate := S1;
       when end_state =>
         nstate := S1;
     end case;
@@ -460,6 +466,52 @@ begin
         n_memreg_write := '0';
         n_regread2_select := '0';
         n_regdata_select := "10";
+        n_regwrite_select := "01";
+        n_reg_write := '1';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+      when S13 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '1';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+      when S14 =>
+        n_inst_write := '0';
+        n_pc_write := '1';
+        n_pc_in_select := "10";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
         n_regwrite_select := "01";
         n_reg_write := '1';
         n_t1_write := '0';

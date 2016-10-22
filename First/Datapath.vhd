@@ -155,7 +155,8 @@ begin
   -- Program Counter Dataflow logic
   PC_in <= CONST_0 when pc_in_select = "00" else
            ALU_out when pc_in_select = "01" else
-           T2_out;
+           T1_out when pc_in_select = "10" else
+           T2_out when pc_in_select = "11";
 
   -- Register File Dataflow
   READ1 <= INSTRUCTION(8 downto 6);
