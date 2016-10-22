@@ -136,7 +136,11 @@ begin
       when S13 =>
           nstate := S14;
       when S14 =>
+        if pc_updated = '1' then
           nstate := S1;
+        else
+          nstate := end_state;
+        end if;
       when end_state =>
         nstate := S1;
     end case;

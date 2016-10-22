@@ -17,7 +17,7 @@ architecture Struct of InstructionDecoder is
 signal op_code: std_logic_vector(3 downto 0);
 begin
   op_code <= instruction(15 downto 12);
-  process(instruction)
+  process(instruction, op_code)
     variable npc_updated: std_logic := '0';
   begin
     if (op_code = "0000" and instruction(5 downto 3) = "111") then
