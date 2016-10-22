@@ -48,6 +48,6 @@ for i in range(0, 100000):
 		print "Destruction"
 
 
-f = open('Tracefiles/tracefile_memory.txt', 'w')
+f = open('../Tracefiles/tracefile_memory.txt', 'w')
 f.write(output)
 f.close()
