@@ -162,7 +162,8 @@ begin
   READ2 <= INSTRUCTION(11 downto 9) when regread2_select = '0' else
            PL_OUTPUT;
   WRITE3 <= INSTRUCTION(5 downto 3) when regwrite_select = "00" else
-            INSTRUCTION(11 downto 9) when regwrite_select = "01";
+            INSTRUCTION(11 downto 9) when regwrite_select = "01" else
+            CONST_0;
   REGDATA_in <= ALUREG_out when regdata_select = "00" else
                 MEMREG_out when regdata_select = "01" else
                 ZERO_PAD9 when regdata_select = "10" else
