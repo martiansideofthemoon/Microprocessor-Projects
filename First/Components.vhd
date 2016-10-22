@@ -4,7 +4,7 @@ use ieee.std_logic_1164.all;
 
 package ProcessorComponents is
 
-  type OperationCode is (NONE, R_TYPE, I_TYPE, LHI, LM, SM, BEQ, JAL, JLR);
+  type OperationCode is (NONE, R_TYPE, LW, SW, ADI, LHI, LM, SM, BEQ, JAL, JLR);
 
   component ClockDivider is
   port (

@@ -61,7 +61,7 @@ entity Controller is
   );
 end entity;
 architecture Struct of Controller is
-  type FsmState is (S0, S1, S2, S3, S4, S5, S6, S7, end_state);
+  type FsmState is (S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, end_state);
   signal state: FsmState;
 begin
 
@@ -78,8 +78,12 @@ begin
       when S2 =>
         if inst_type = R_TYPE and active = '1' then
           nstate := S3;
-        elsif inst_type = I_TYPE then
+        elsif inst_type = LW or inst_type = SW then
           nstate := S5;
+        elsif inst_type = ADI then
+          nstate := S9;
+        elsif inst_type = LHI then
+          nstate := S11;
         else
           nstate := end_state;
         end if;
@@ -92,10 +96,36 @@ begin
           nstate := end_state;
         end if;
       when S5 =>
+        if inst_type = LW then
           nstate := S6;
+        elsif inst_type = SW then
+          nstate := S8;
+        else
+          nstate := end_state;
+        end if;
       when S6 =>
           nstate := S7;
       when S7 =>
+        if pc_updated = '1' then
+          nstate := S1;
+        else
+          nstate := end_state;
+        end if;
+      when S8 =>
+        if pc_updated = '1' then
+          nstate := S1;
+        else
+          nstate := end_state;
+        end if;
+      when S9 =>
+          nstate := S10;
+      when S10 =>
+        if pc_updated = '1' then
+          nstate := S1;
+        else
+          nstate := end_state;
+        end if;
+      when S11 =>
         if pc_updated = '1' then
           nstate := S1;
         else
@@ -115,7 +145,7 @@ begin
   end process;
 
   -- Control Signal process
-  process(state, reset)
+  process(state, zero_flag, reset)
     variable n_inst_write: std_logic;
     variable n_pc_write: std_logic;
     variable n_pc_in_select: std_logic_vector(1 downto 0);
@@ -338,6 +368,98 @@ begin
         n_memreg_write := '0';
         n_regread2_select := '0';
         n_regdata_select := "01";
+        n_regwrite_select := "01";
+        n_reg_write := '1';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+      when S8 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "01";
+        n_mem_write := '1';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+      when S9 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "11";
+        n_alu2_select := "001";
+        n_alureg_write := '1';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '1';
+        n_zero_enable_select := '1';
+        n_pl_select := '0';
+      when S10 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "10";
+        n_reg_write := '1';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+      when S11 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "10";
         n_regwrite_select := "01";
         n_reg_write := '1';
         n_t1_write := '0';

@@ -65,8 +65,12 @@ begin
   begin
     if (op_code = "0000" or op_code = "0010") then
       output <= R_TYPE;
-    elsif (op_code = "0001" or op_code = "0100" or op_code = "0101") then
-      output <= I_TYPE;
+    elsif (op_code = "0001") then
+      output <= ADI;
+    elsif (op_code = "0100") then
+      output <= LW;
+    elsif (op_code = "0101") then
+      output <= SW;
     elsif (op_code = "0011") then
       output <= LHI;
     elsif (op_code = "0110") then
