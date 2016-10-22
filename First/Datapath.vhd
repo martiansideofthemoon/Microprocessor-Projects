@@ -15,7 +15,7 @@ entity Datapath is
     -- Select the two ALU inputs / op_code
     alu_op: in std_logic;
     alu_op_select: in std_logic;
-    alu1_select: in std_logic_vector(1 downto 0);
+    alu1_select: in std_logic_vector(2 downto 0);
     alu2_select: in std_logic_vector(2 downto 0);
     alureg_write: in std_logic;
 
@@ -132,10 +132,11 @@ architecture Mixed of Datapath is
 
 begin
   -- ALU Dataflow logic
-  ALU1_in <= PC_out when alu1_select = "00" else
-             T1_out when alu1_select = "01" else
-             ALUREG_out when alu1_select = "10" else
-             SE6_out when alu1_select = "11" ;
+  ALU1_in <= PC_out when alu1_select = "000" else
+             T1_out when alu1_select = "001" else
+             ALUREG_out when alu1_select = "010" else
+             SE6_out when alu1_select = "011" else
+             CONST_0 when alu1_select = "100";
   ALU2_in <= CONST_2 when alu2_select = "000" else
              T2_out when alu2_select = "001" else
              SE6_out when alu2_select = "010" else
@@ -152,7 +153,7 @@ begin
                 PC_out when reset = '0' and addr_select = "00" else
                 ALUREG_out when reset = '0' and addr_select = "01" else
                 T1_out when reset = '0' and addr_select = "10" else
-                CONST_0 when reset = '0';
+                T2_out when reset = '0' and addr_select = "11";
   MEMDATA_in <= T2_out when reset = '0' else external_data;
   MEMWRITE <= mem_write when reset = '0' else external_mem_write;
 
@@ -169,7 +170,7 @@ begin
   WRITE3 <= INSTRUCTION(5 downto 3) when regwrite_select = "00" else
             INSTRUCTION(11 downto 9) when regwrite_select = "01" else
             INSTRUCTION(8 downto 6) when regwrite_select = "10" else
-            CONST_0(2 downto 0);
+            PL_OUTPUT when regwrite_select = "11";
   REGDATA_in <= ALUREG_out when regdata_select = "00" else
                 MEMREG_out when regdata_select = "01" else
                 ZERO_PAD9 when regdata_select = "10" else

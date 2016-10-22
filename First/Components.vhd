@@ -160,7 +160,7 @@ package ProcessorComponents is
     -- Select the two ALU inputs / op_code
     alu_op: in std_logic;
     alu_op_select: in std_logic;
-    alu1_select: in std_logic_vector(1 downto 0);
+    alu1_select: in std_logic_vector(2 downto 0);
     alu2_select: in std_logic_vector(2 downto 0);
     alureg_write: in std_logic;
 
@@ -221,7 +221,7 @@ package ProcessorComponents is
     -- Select the two ALU inputs / op_code
     alu_op: out std_logic;
     alu_op_select: out std_logic;
-    alu1_select: out std_logic_vector(1 downto 0);
+    alu1_select: out std_logic_vector(2 downto 0);
     alu2_select: out std_logic_vector(2 downto 0);
     alureg_write: out std_logic;
 

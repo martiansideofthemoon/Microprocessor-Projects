@@ -24,7 +24,7 @@ architecture Struct of TopLevel is
   -- Select the two ALU inputs / op_code
   signal alu_op: std_logic;
   signal alu_op_select: std_logic;
-  signal alu1_select: std_logic_vector(1 downto 0);
+  signal alu1_select: std_logic_vector(2 downto 0);
   signal alu2_select: std_logic_vector(2 downto 0);
   signal alureg_write: std_logic;
 

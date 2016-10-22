@@ -15,7 +15,7 @@ entity Controller is
     -- Select the two ALU inputs / op_code
     alu_op: out std_logic;
     alu_op_select: out std_logic;
-    alu1_select: out std_logic_vector(1 downto 0);
+    alu1_select: out std_logic_vector(2 downto 0);
     alu2_select: out std_logic_vector(2 downto 0);
     alureg_write: out std_logic;
 
@@ -61,7 +61,7 @@ entity Controller is
   );
 end entity;
 architecture Struct of Controller is
-  type FsmState is (S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S13, S14, end_state);
+  type FsmState is (S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S13, S14, S16, S17, end_state);
   signal state: FsmState;
 begin
 
@@ -86,6 +86,8 @@ begin
           nstate := S11;
         elsif inst_type = JLR then
           nstate := S13;
+        elsif inst_type = LM then
+          nstate := S16;
         else
           nstate := end_state;
         end if;
@@ -141,6 +143,23 @@ begin
         else
           nstate := end_state;
         end if;
+      when S16 =>
+        if plinput_zero = '1' and pc_updated = '1' then
+          nstate := S1;
+        elsif plinput_zero = '1' and pc_updated = '0' then
+          nstate := end_state;
+        else
+          nstate := S17;
+        end if;
+      when S17 =>
+        report "yolo";
+        if plinput_zero = '1' and pc_updated = '1' then
+          nstate := S1;
+        elsif plinput_zero = '1' and pc_updated = '0' then
+          nstate := end_state;
+        else
+          nstate := S17;
+        end if;
       when end_state =>
         nstate := S1;
     end case;
@@ -161,7 +180,7 @@ begin
     variable n_pc_in_select: std_logic_vector(1 downto 0);
     variable n_alu_op: std_logic;
     variable n_alu_op_select: std_logic;
-    variable n_alu1_select: std_logic_vector(1 downto 0);
+    variable n_alu1_select: std_logic_vector(2 downto 0);
     variable n_alu2_select: std_logic_vector(2 downto 0);
     variable n_alureg_write: std_logic;
     variable n_addr_select: std_logic_vector(1 downto 0);
@@ -184,7 +203,7 @@ begin
     n_pc_in_select := "00";
     n_alu_op := '0';
     n_alu_op_select := '0';
-    n_alu1_select := "00";
+    n_alu1_select := "000";
     n_alu2_select := "000";
     n_alureg_write := '0';
     n_addr_select := "00";
@@ -209,7 +228,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "00";
@@ -232,7 +251,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "00";
@@ -255,7 +274,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "00";
@@ -278,7 +297,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '1';
-        n_alu1_select := "01";
+        n_alu1_select := "001";
         n_alu2_select := "001";
         n_alureg_write := '1';
         n_addr_select := "00";
@@ -301,7 +320,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "00";
@@ -324,7 +343,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "01";
+        n_alu1_select := "001";
         n_alu2_select := "010";
         n_alureg_write := '1';
         n_addr_select := "00";
@@ -347,7 +366,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "01";
@@ -370,7 +389,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "00";
@@ -393,7 +412,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "01";
@@ -416,7 +435,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "11";
+        n_alu1_select := "011";
         n_alu2_select := "001";
         n_alureg_write := '1';
         n_addr_select := "00";
@@ -439,7 +458,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "00";
@@ -462,7 +481,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "00";
@@ -485,7 +504,7 @@ begin
         n_pc_in_select := "00";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '1';
         n_addr_select := "00";
@@ -508,7 +527,7 @@ begin
         n_pc_in_select := "10";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "00";
@@ -525,13 +544,59 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+      when S16 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "100";
+        n_alu2_select := "001";
+        n_alureg_write := '1';
+        n_addr_select := "11";
+        n_mem_write := '0';
+        n_memreg_write := '1';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '1';
+      when S17 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "010";
+        n_alu2_select := "000";
+        n_alureg_write := '1';
+        n_addr_select := "01";
+        n_mem_write := '0';
+        n_memreg_write := '1';
+        n_regread2_select := '0';
+        n_regdata_select := "01";
+        n_regwrite_select := "11";
+        n_reg_write := '1';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
       when end_state =>
         n_inst_write := '0';
         n_pc_write := '1';
         n_pc_in_select := "01";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "00";
+        n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
         n_addr_select := "00";
@@ -556,7 +621,7 @@ begin
       pc_in_select <= "00";
       alu_op <= '0';
       alu_op_select <= '0';
-      alu1_select <= "00";
+      alu1_select <= "000";
       alu2_select <= "000";
       alureg_write <= '0';
       addr_select <= "00";
