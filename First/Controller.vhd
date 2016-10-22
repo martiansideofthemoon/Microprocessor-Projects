@@ -92,6 +92,10 @@ begin
           nstate := end_state;
         end if;
       when S5 =>
+          nstate := S6;
+      when S6 =>
+          nstate := S7;
+      when S7 =>
         if pc_updated = '1' then
           nstate := S1;
         else
@@ -312,6 +316,29 @@ begin
         n_regread2_select := '0';
         n_regdata_select := "00";
         n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+      when S7 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "00";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "00";
+        n_alu2_select := "000";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '1';
+        n_regread2_select := '0';
+        n_regdata_select := "01";
+        n_regwrite_select := "01";
         n_reg_write := '0';
         n_t1_write := '0';
         n_t2_write := '0';
