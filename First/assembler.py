@@ -65,7 +65,7 @@ INS_DATA = {
   'jal': ("1000", REGISTER, VALUE_9, "\n"),
   'jlr': ("1001", REGISTER, REGISTER, "000000\n"),
   'org': ("1111111111111111\n", MEMORY, "\n"),
-  'db': (MEMORY, "\n")
+  'db': ("", MEMORY, "\n")
 }
 
 # General purpose regular expressions
