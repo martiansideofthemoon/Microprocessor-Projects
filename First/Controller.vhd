@@ -152,7 +152,6 @@ begin
           nstate := S17;
         end if;
       when S17 =>
-        report "yolo";
         if plinput_zero = '1' and pc_updated = '1' then
           nstate := S1;
         elsif plinput_zero = '1' and pc_updated = '0' then
@@ -174,7 +173,7 @@ begin
   end process;
 
   -- Control Signal process
-  process(state, zero_flag, reset)
+  process(state, zero_flag, plinput_zero, reset)
     variable n_inst_write: std_logic;
     variable n_pc_write: std_logic;
     variable n_pc_in_select: std_logic_vector(1 downto 0);
@@ -582,7 +581,11 @@ begin
         n_regread2_select := '0';
         n_regdata_select := "01";
         n_regwrite_select := "11";
-        n_reg_write := '1';
+        if plinput_zero = '1' then
+          n_reg_write := '0';
+        else
+          n_reg_write := '1';
+        end if;
         n_t1_write := '0';
         n_t2_write := '0';
         n_set_carry := '0';
