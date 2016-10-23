@@ -87,7 +87,7 @@ begin
         mem_write <= '1';
         addr <= std_logic_vector(to_unsigned(address_int, addr'length));
         data <= to_std_logic_vector(din);
-        address_int := address_int + 2;
+        address_int := address_int + 1;
       end if;
     	wait until clk = '1';
     end loop;

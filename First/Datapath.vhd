@@ -67,7 +67,8 @@ end entity;
 architecture Mixed of Datapath is
   -- Constants
   signal CONST_0: std_logic_vector(15 downto 0) := (others => '0');
-  signal CONST_2: std_logic_vector(15 downto 0) := (1 => '1', others => '0');
+  signal CONST_1: std_logic_vector(15 downto 0) := (0 => '1', others => '0');
+  signal CONST_32: std_logic_vector(15 downto 0) := (5 => '1', others => '0');
 
   -- Instruction Register signals
   signal INSTRUCTION: std_logic_vector(15 downto 0) := (others => '0');
@@ -77,6 +78,7 @@ architecture Mixed of Datapath is
 
   -- Memory signals
   signal ADDRESS_in: std_logic_vector(15 downto 0);
+  signal LSHIFT_ADDRESS_in: std_logic_vector(15 downto 0);
   signal MEMDATA_in: std_logic_vector(15 downto 0);
   signal MEM_out: std_logic_vector(15 downto 0);
   signal MEMWRITE: std_logic;
@@ -96,8 +98,6 @@ architecture Mixed of Datapath is
 
   -- Zero Pad / Left Shift / Sign Extender signals
   signal ZERO_PAD9: std_logic_vector(15 downto 0);
-  signal LEFT_SHIFT6: std_logic_vector(15 downto 0);
-  signal LEFT_SHIFT9: std_logic_vector(15 downto 0);
   signal SE6_out: std_logic_vector(15 downto 0);
   signal SE9_out: std_logic_vector(15 downto 0);
 
@@ -138,16 +138,15 @@ begin
              ALUREG_out when alu1_select = "010" else
              SE6_out when alu1_select = "011" else
              CONST_0 when alu1_select = "100" else
-             CONST_2 when alu1_select = "101" else
-             CONST_0;
-  ALU2_in <= CONST_2 when alu2_select = "000" else
+             CONST_1 when alu1_select = "101" else
+             CONST_32;
+
+  ALU2_in <= CONST_1 when alu2_select = "000" else
              T2_out when alu2_select = "001" else
              SE6_out when alu2_select = "010" else
              SE9_out when alu2_select = "011" else
-             LEFT_SHIFT6 when alu2_select = "100" else
              TwosCmp_out when alu2_select = "101" else
-             LEFT_SHIFT9 when alu2_select = "110" else
-             CONST_0;
+             CONST_32;
 
   ALU_opcode <= alu_op when alu_op_select = '0' else
                 INST_ALU when alu_op_select = '1';
@@ -158,6 +157,7 @@ begin
                 ALUREG_out when reset = '0' and addr_select = "01" else
                 T1_out when reset = '0' and addr_select = "10" else
                 T2_out when reset = '0' and addr_select = "11";
+
   MEMDATA_in <= T2_out when reset = '0' else external_data;
   MEMWRITE <= mem_write when reset = '0' else external_mem_write;
 
@@ -167,7 +167,7 @@ begin
            T1_out when pc_in_select = "010" else
            T2_out when pc_in_select = "011" else
            ALUREG_out when pc_in_select = "100"else
-           CONST_0;
+           CONST_32;
 
   -- Register File Dataflow
   READ1 <= INSTRUCTION(8 downto 6);
@@ -260,7 +260,7 @@ begin
       port map (
         clk => clk,
         mem_write => MEMWRITE,
-        addr => ADDRESS_in,
+        addr => LSHIFT_ADDRESS_in,
         data => MEMDATA_in,
         mem_out => MEM_out
       );
@@ -284,15 +284,10 @@ begin
          input => INSTRUCTION(8 downto 0),
          output => SE9_out
        );
-  LS6: LeftShift
+  LS: LeftShift
       port map (
-        input => SE6_out,
-        output => LEFT_SHIFT6
-      );
-  LS9: LeftShift
-      port map (
-        input => SE9_out,
-        output => LEFT_SHIFT9
+        input => ADDRESS_in,
+        output => LSHIFT_ADDRESS_in
       );
   TwoCmp: TwosComplement
       port map (

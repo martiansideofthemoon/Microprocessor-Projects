@@ -310,7 +310,7 @@ begin
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
-        n_alu2_select := "100";
+        n_alu2_select := "010";
         n_alureg_write := '1';
         n_addr_select := "00";
         n_mem_write := '0';
@@ -614,7 +614,7 @@ begin
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
-        n_alu2_select := "110";
+        n_alu2_select := "011";
         n_alureg_write := '0';
         n_addr_select := "00";
         n_mem_write := '0';
