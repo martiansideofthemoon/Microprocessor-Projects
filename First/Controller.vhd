@@ -87,7 +87,7 @@ begin
           nstate := S11;
         elsif inst_type = BEQ then
           nstate := S12;
-        elsif inst_type = JLR then
+        elsif inst_type = JLR or inst_type = JAL then
           nstate := S13;
         elsif inst_type = LM then
           nstate := S16;
@@ -591,6 +591,7 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S15 =>
+        report "in S15";
         n_inst_write := '0';
         n_pc_write := '1';
         n_pc_in_select := "001";
