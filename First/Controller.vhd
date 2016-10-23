@@ -75,11 +75,11 @@ begin
   begin
     nstate := S0;
     case state is
-      when S0 =>
+      when S0 =>  -- First state whenever the code is loaded
         nstate := S1;
-      when S1 =>
+      when S1 =>  -- Always the first state of every instruction.
         nstate := S2;
-      when S2 =>
+      when S2 =>  -- Common Second state of all instructions
         if inst_type = R_TYPE and active = '1' then
           nstate := S3;
         elsif inst_type = LW or inst_type = SW then
@@ -99,15 +99,15 @@ begin
         else
           nstate := end_state;
         end if;
-      when S3 =>
+      when S3 =>  -- For ALU operations: ADD,ADC,ADZ,NDU,NDZ,NDC
         nstate := S4;
-      when S4 =>
+      when S4 =>  -- For ADZ,ADC,NDC,NDZ
         if pc_updated = '1' then
           nstate := S1;
         else
           nstate := end_state;
         end if;
-      when S5 =>
+      when S5 =>  -- For LW,SW
         if inst_type = LW then
           nstate := S6;
         elsif inst_type = SW then
@@ -115,41 +115,41 @@ begin
         else
           nstate := end_state;
         end if;
-      when S6 =>
+      when S6 =>  -- For LW
           nstate := S7;
-      when S7 =>
+      when S7 =>  -- For LW
         if pc_updated = '1' then
           nstate := S1;
         else
           nstate := end_state;
         end if;
-      when S8 =>
+      when S8 =>  -- For SW
         if pc_updated = '1' then
           nstate := S1;
         else
           nstate := end_state;
         end if;
-      when S9 =>
+      when S9 =>  -- For ADI
           nstate := S10;
-      when S10 =>
+      when S10 => --For ADI
         if pc_updated = '1' then
           nstate := S1;
         else
           nstate := end_state;
         end if;
-      when S11 =>
+      when S11 => -- For LHI
         if pc_updated = '1' then
           nstate := S1;
         else
           nstate := end_state;
         end if;
-      when S12 =>
+      when S12 => -- For BEQ
         if zero_flag = '1' then
           nstate := S1;
         else
           nstate := end_state;
         end if;
-      when S13 =>
+      when S13 => -- For JAL and JLR
         if inst_type = JLR then
           nstate := S14;
         elsif inst_type = JAL then
@@ -157,26 +157,26 @@ begin
         else
           nstate := end_state;
         end if;
-      when S14 =>
+      when S14 =>-- For JLR
         if pc_updated = '1' then
           nstate := S1;
         else
           nstate := end_state;
         end if;
-      when S15 =>
+      when S15 => -- For JAL
         if pc_updated = '1' then
           nstate := S1;
         else
           nstate := end_state;
         end if;
-      when S16 =>
+      when S16 => -- For LM
         -- In this case, all 8 bits are zero
         if plinput_zero = '1' then
           nstate := end_state;
         else
           nstate := S17;
         end if;
-      when S17 =>
+      when S17 => -- For LM
         if plinput_zero = '1' and pc_updated = '1' then
           nstate := S1;
         elsif plinput_zero = '1' and pc_updated = '0' then
@@ -184,14 +184,14 @@ begin
         else
           nstate := S17;
         end if;
-      when S18 =>
+      when S18 => -- For SM
         -- In this case, all 8 bits are zero
         if plinput_zero = '1' then
           nstate := end_state;
         else
           nstate := S19;
         end if;
-      when S19 =>
+      when S19 => -- For SM
         -- In this case, all 8 bits are zero
         if plinput_zero = '1' and pc_updated = '1' then
           nstate := S1;
@@ -715,7 +715,7 @@ begin
         n_zero_enable_select := '0';
         n_zero_select := '0';
       when S17 =>
-      --For SM:
+      --For LM:
         n_alu1_select := "010";
         n_alu2_select := "000";
         n_alureg_write := '1';
@@ -745,7 +745,7 @@ begin
         n_pl_select := '0';
         n_zero_select := '0';
       when S18 =>
-      --For LM
+      --For SM
         n_alu1_select := "100";
         n_alu2_select := "001";
         n_alureg_write := '1';
@@ -771,7 +771,7 @@ begin
         n_pl_select := '0';
         n_zero_select := '0';
       when S19 =>
-      -- For LM
+      -- For SM
         n_alu1_select := "010";
         n_alu2_select := "000";
         n_alureg_write := '1';
