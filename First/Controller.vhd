@@ -591,7 +591,6 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S15 =>
-        report "in S15";
         n_inst_write := '0';
         n_pc_write := '1';
         n_pc_in_select := "001";
