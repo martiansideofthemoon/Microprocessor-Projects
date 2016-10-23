@@ -59,6 +59,9 @@ architecture Struct of TopLevel is
   -- Used to transition from S2
   signal inst_type: OperationCode;
 
+  -- choice for input into zero flag
+  signal zero_select: std_logic;
+
   -- zero flag which is useful for BEQ control
   signal zero_flag: std_logic;
 
@@ -93,6 +96,7 @@ CP: Controller
     active => active,
     plinput_zero => plinput_zero,
     inst_type => inst_type,
+    zero_select => zero_select,
     zero_flag => zero_flag,
     pc_updated => pc_updated,
     clk => clk,
@@ -125,6 +129,7 @@ DP: Datapath
     active => active,
     plinput_zero => plinput_zero,
     inst_type => inst_type,
+    zero_select => zero_select,
     zero_flag => zero_flag,
     pc_updated => pc_updated,
     clk => clk,

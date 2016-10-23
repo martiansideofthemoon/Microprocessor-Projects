@@ -16,7 +16,8 @@ entity RegisterFile is
     PC_write     : in  std_logic;
     PC_in        : in std_logic_vector(15 downto 0);
     PC_out       : out  std_logic_vector(15 downto 0);
-    clk          : in  std_logic
+    clk          : in  std_logic;
+    zero         : out std_logic
     );
 end RegisterFile;
 
@@ -42,4 +43,5 @@ begin
   dout1 <= registers(to_integer(unsigned(readA1)));
   dout2 <= registers(to_integer(unsigned(readA2)));
   PC_out <= registers(7);
+  zero <= '1' when din = "0000000000000000" else '0';
 end Struct;

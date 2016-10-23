@@ -48,7 +48,7 @@ begin
       nalu_op := '0';
       nalu_carry := '1';
       nalu_zero := '1';
-    elsif (op_code = "0010" or op_code = "0100") then
+    elsif (op_code = "0010") then
       nalu_op := '1';
       nalu_carry := '0';
       nalu_zero := '1';

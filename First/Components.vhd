@@ -114,7 +114,8 @@ package ProcessorComponents is
     PC_write     : in  std_logic;
     PC_in        : in std_logic_vector(15 downto 0);
     PC_out       : out  std_logic_vector(15 downto 0);
-    clk          : in  std_logic
+    clk          : in  std_logic;
+    zero         : out std_logic
   );
   end component RegisterFile;
 
@@ -192,6 +193,9 @@ package ProcessorComponents is
     -- Used to transition from S2
     inst_type: out OperationCode;
 
+    -- choice for input into zero flag
+    zero_select: in std_logic;
+
     -- zero flag which is useful for BEQ control
     zero_flag: out std_logic;
 
@@ -252,6 +256,9 @@ package ProcessorComponents is
 
     -- Used to transition from S2
     inst_type: in OperationCode;
+
+    -- choice for input into zero flag
+    zero_select: out std_logic;
 
     -- zero flag which is useful for BEQ control
     zero_flag: in std_logic;

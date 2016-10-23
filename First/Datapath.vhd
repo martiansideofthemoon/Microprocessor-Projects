@@ -47,6 +47,9 @@ entity Datapath is
     -- Used to transition from S2
     inst_type: out OperationCode;
 
+    -- choice for input into zero flag
+    zero_select: in std_logic;
+
     -- zero flag which is useful for BEQ control
     zero_flag: out std_logic;
 
@@ -95,6 +98,7 @@ architecture Mixed of Datapath is
   signal READ2: std_logic_vector(2 downto 0);
   signal WRITE3: std_logic_vector(2 downto 0);
   signal REGDATA_in: std_logic_vector(15 downto 0);
+  signal REGLOAD_zero: std_logic;
 
   -- Zero Pad / Left Shift / Sign Extender signals
   signal ZERO_PAD9: std_logic_vector(15 downto 0);
@@ -185,7 +189,7 @@ begin
   -- Flags data flow logic
   zero_flag <= ALU_zero;
   CARRY_in(0) <= ALU_carry;
-  ZERO_in(0) <= ALU_zero;
+  ZERO_in(0) <= ALU_zero when zero_select = '0' else REGLOAD_zero;
   CARRY_ENABLE <= INST_CARRY when carry_enable_select = '1' else set_carry;
   ZERO_ENABLE <= INST_ZERO when zero_enable_select = '1' else set_zero;
 
@@ -231,7 +235,8 @@ begin
         readA2 => READ2,
         writeA3 => WRITE3,
         register_write => reg_write,
-        din => REGDATA_in
+        din => REGDATA_in,
+        zero => REGLOAD_zero
       );
   T1: DataRegister
       generic map (data_width => 16)

@@ -49,6 +49,9 @@ entity Controller is
     -- Used to transition from S2
     inst_type: in OperationCode;
 
+    -- choice for input into zero flag
+    zero_select: out std_logic;
+
     -- zero flag which is useful for BEQ control
     zero_flag: in std_logic;
 
@@ -171,7 +174,7 @@ begin
         if plinput_zero = '1' then
           nstate := end_state;
         else
-          nstate := S18;
+          nstate := S17;
         end if;
       when S17 =>
         if plinput_zero = '1' and pc_updated = '1' then
@@ -234,6 +237,7 @@ begin
     variable n_carry_enable_select: std_logic;
     variable n_zero_enable_select: std_logic;
     variable n_pl_select: std_logic;
+    variable n_zero_select: std_logic;
   begin
     n_inst_write := '0';
     n_pc_write := '0';
@@ -257,6 +261,7 @@ begin
     n_carry_enable_select := '0';
     n_zero_enable_select := '0';
     n_pl_select := '0';
+    n_zero_select := '0';
 
     case state is
       when S0 =>
@@ -285,6 +290,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S1 =>
       -- Always the first state of every instruction.
       -- Fetches the instruction
@@ -311,6 +317,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S2 =>
       -- Common Second state of all instructions
       -- For S2:
@@ -337,8 +344,9 @@ begin
         n_set_zero := '0';
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
+        n_zero_select := '0';
       when S3 =>
-      -- For ALU operations: ADD,ADC,ADZ,NDU,NDZ,NDC 
+      -- For ALU operations: ADD,ADC,ADZ,NDU,NDZ,NDC
         n_alu_op_select := '1';
         n_alu1_select := "001";
         n_alu2_select := "001";
@@ -362,6 +370,7 @@ begin
         n_set_carry := '0';
         n_set_zero := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S4 =>
       -- For ADZ,ADC,NDC,NDZ
         n_reg_write := '1';
@@ -387,6 +396,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S5 =>
       -- For LW,SW
         n_alu1_select := "001";
@@ -412,6 +422,7 @@ begin
         n_set_carry := '0';
         n_set_zero := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S6 =>
       -- For LW
         n_addr_select := "01";
@@ -437,11 +448,13 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S7 =>
       -- For LW
         n_regdata_select := "01";
         n_regwrite_select := "01";
         n_reg_write := '1';
+        n_zero_select := '1';
       --default
         n_inst_write := '0';
         n_pc_write := '0';
@@ -458,7 +471,7 @@ begin
         n_t1_write := '0';
         n_t2_write := '0';
         n_set_carry := '0';
-        n_set_zero := '0';
+        n_set_zero := '1';
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
@@ -487,6 +500,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S9 =>
       -- For ADI
         n_alu1_select := "011";
@@ -512,6 +526,7 @@ begin
         n_set_carry := '0';
         n_set_zero := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S10 =>
       --For ADI
         n_regdata_select := "00";
@@ -537,6 +552,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S11 =>
       -- For LHI
         n_regdata_select := "10";
@@ -562,6 +578,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S12 =>
       -- For BEQ
         n_alu1_select := "001";
@@ -592,6 +609,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S13 =>
       --For JLR and JAL
         n_alu1_select := "000";
@@ -617,6 +635,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S14 =>
       --For JLR
         n_pc_write := '1';
@@ -642,6 +661,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S15 =>
       --For JAL
         n_pc_write := '1';
@@ -667,6 +687,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S16 =>
       --For LM
         n_alu1_select := "101";
@@ -675,7 +696,7 @@ begin
         n_addr_select := "11";
         n_memreg_write := '1';
         n_pl_select := '1';
-      --default  
+      --default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
@@ -692,6 +713,7 @@ begin
         n_set_zero := '0';
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
+        n_zero_select := '0';
       when S17 =>
       --For SM:
         n_alu1_select := "010";
@@ -721,6 +743,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S18 =>
       --For LM
         n_alu1_select := "100";
@@ -746,6 +769,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when S19 =>
       -- For LM
         n_alu1_select := "010";
@@ -771,6 +795,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
       when end_state =>
       -- Common end_state for all in which pc not updated
         n_pc_write := '1';
@@ -796,6 +821,7 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+        n_zero_select := '0';
     end case;
 
     if reset = '1' then
@@ -821,6 +847,7 @@ begin
       carry_enable_select <= '0';
       zero_enable_select <= '0';
       pl_select <= '0';
+      n_zero_select := '0';
     else
       inst_write <= n_inst_write;
       pc_write <= n_pc_write;
@@ -844,6 +871,7 @@ begin
       carry_enable_select <= n_carry_enable_select;
       zero_enable_select <= n_zero_enable_select;
       pl_select <= n_pl_select;
+      zero_select <= n_zero_select;
     end if;
   end process;
 
