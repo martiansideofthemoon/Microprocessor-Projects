@@ -102,9 +102,9 @@ begin
       when S3 =>  -- For ALU operations: ADD,ADC,ADZ,NDU,NDZ,NDC
         nstate := S4;
       when S4 =>  -- For ADZ,ADC,NDC,NDZ
-        if pc_updated = '1' then
+        if pc_updated = '1' then    --pc already updated hence go to S1.
           nstate := S1;
-        else
+        else                        --pc has to be updated in end state
           nstate := end_state;
         end if;
       when S5 =>  -- For LW,SW
@@ -145,9 +145,9 @@ begin
         end if;
       when S12 => -- For BEQ
         if zero_flag = '1' then
-          nstate := S1;
+          nstate := S1;             -- pc already updated hence go to S1
         else
-          nstate := end_state;
+          nstate := end_state;      -- pc not updated hence go to end state
         end if;
       when S13 => -- For JAL and JLR
         if inst_type = JLR then
@@ -171,33 +171,33 @@ begin
         end if;
       when S16 => -- For LM
         -- In this case, all 8 bits are zero
-        if plinput_zero = '1' then
+        if plinput_zero = '1' then          -- no bit is set for any reg
           nstate := end_state;
-        else
+        else                                -- at least one bit is set
           nstate := S17;
         end if;
       when S17 => -- For LM
-        if plinput_zero = '1' and pc_updated = '1' then
+        if plinput_zero = '1' and pc_updated = '1' then -- no bit is set for any reg and pc updated
           nstate := S1;
-        elsif plinput_zero = '1' and pc_updated = '0' then
+        elsif plinput_zero = '1' and pc_updated = '0' then -- no bit is set for any reg and pc not updated
           nstate := end_state;
-        else
+        else                                -- at least one bit is still set
           nstate := S17;
         end if;
       when S18 => -- For SM
         -- In this case, all 8 bits are zero
-        if plinput_zero = '1' then
+        if plinput_zero = '1' then          -- no bit is set for any reg
           nstate := end_state;
-        else
+        else                                -- at least one bit is set
           nstate := S19;
         end if;
       when S19 => -- For SM
         -- In this case, all 8 bits are zero
-        if plinput_zero = '1' and pc_updated = '1' then
+        if plinput_zero = '1' and pc_updated = '1' then -- no bit is set for any reg and pc updated
           nstate := S1;
-        elsif plinput_zero = '1' and pc_updated = '0' then
+        elsif plinput_zero = '1' and pc_updated = '0' then -- no bit is set for any reg and pc not updated
           nstate := end_state;
-        else
+        else                                -- at least one bit is still set
           nstate := S19;
         end if;
       when end_state =>
@@ -751,6 +751,7 @@ begin
         n_alureg_write := '1';
         n_regread2_select := '1';
         n_t2_write := '1';
+        n_pl_select := '0';
       --Default
         n_inst_write := '0';
         n_pc_write := '0';
@@ -768,7 +769,6 @@ begin
         n_set_zero := '0';
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
-        n_pl_select := '0';
         n_zero_select := '0';
       when S19 =>
       -- For SM
@@ -781,6 +781,7 @@ begin
         n_regdata_select := "01";
         n_regwrite_select := "11";
         n_t2_write := '1';
+        n_pl_select := '0';
       --default
         n_inst_write := '0';
         n_pc_write := '0';
@@ -794,7 +795,6 @@ begin
         n_set_zero := '0';
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
-        n_pl_select := '0';
         n_zero_select := '0';
       when end_state =>
       -- Common end_state for all in which pc not updated
