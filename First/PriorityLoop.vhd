@@ -31,6 +31,8 @@ begin
       dout <= "110";
     elsif (din(7) = '1') then
       dout <= "111";
+    else
+      dout <= "000";
     end if;
   end process;
 end Struct;

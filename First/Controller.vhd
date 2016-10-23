@@ -550,7 +550,7 @@ begin
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "100";
-        n_alu2_select := "001";
+        n_alu2_select := "000";
         n_alureg_write := '1';
         n_addr_select := "11";
         n_mem_write := '0';
