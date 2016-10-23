@@ -35,7 +35,8 @@ TOKEN_DATA = {
   'beq': (OP_CODE, VALUE, COMMA, VALUE, COMMA, VALUE),
   'jal': (OP_CODE, VALUE, COMMA, VALUE),
   'jlr': (OP_CODE, VALUE, COMMA, VALUE),
-  'org': (OP_CODE, VALUE)
+  'org': (OP_CODE, VALUE),
+  'db': (OP_CODE, VALUE)
 }
 # Provides the relative swaps of indices for opcodes
 REORDER_DATA = {
@@ -63,7 +64,8 @@ INS_DATA = {
   'beq': ("1100", REGISTER, REGISTER, VALUE_6, "\n"),
   'jal': ("1000", REGISTER, VALUE_9, "\n"),
   'jlr': ("1001", REGISTER, REGISTER, "000000\n"),
-  'org': ("1111111111111111\n", MEMORY, "\n")
+  'org': ("1111111111111111\n", MEMORY, "\n"),
+  'db': (MEMORY, "\n")
 }
 
 # General purpose regular expressions
