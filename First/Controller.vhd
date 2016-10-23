@@ -10,7 +10,7 @@ entity Controller is
 
     -- Program counter write / select
     pc_write: out std_logic;
-    pc_in_select: out std_logic_vector;
+    pc_in_select: out std_logic_vector(2 downto 0);
 
     -- Select the two ALU inputs / op_code
     alu_op: out std_logic;
@@ -61,7 +61,8 @@ entity Controller is
   );
 end entity;
 architecture Struct of Controller is
-  type FsmState is (S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S13, S14, S16, S17, end_state);
+  type FsmState is (S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11,
+                    S12, S13, S14, S15, S16, S17, end_state);
   signal state: FsmState;
 begin
 
@@ -84,6 +85,8 @@ begin
           nstate := S9;
         elsif inst_type = LHI then
           nstate := S11;
+        elsif inst_type = BEQ then
+          nstate := S12;
         elsif inst_type = JLR then
           nstate := S13;
         elsif inst_type = LM then
@@ -135,9 +138,25 @@ begin
         else
           nstate := end_state;
         end if;
+      when S12 =>
+        if zero_flag = '1' then
+          nstate := S1;
+        else
+          nstate := end_state;
+        end if;
       when S13 =>
+        if inst_type = JLR then
           nstate := S14;
+        else
+          nstate := S15;
+        end if;
       when S14 =>
+        if pc_updated = '1' then
+          nstate := S1;
+        else
+          nstate := end_state;
+        end if;
+      when S15 =>
         if pc_updated = '1' then
           nstate := S1;
         else
@@ -176,7 +195,7 @@ begin
   process(state, zero_flag, plinput_zero, reset)
     variable n_inst_write: std_logic;
     variable n_pc_write: std_logic;
-    variable n_pc_in_select: std_logic_vector(1 downto 0);
+    variable n_pc_in_select: std_logic_vector(2 downto 0);
     variable n_alu_op: std_logic;
     variable n_alu_op_select: std_logic;
     variable n_alu1_select: std_logic_vector(2 downto 0);
@@ -199,7 +218,7 @@ begin
   begin
     n_inst_write := '0';
     n_pc_write := '0';
-    n_pc_in_select := "00";
+    n_pc_in_select := "000";
     n_alu_op := '0';
     n_alu_op_select := '0';
     n_alu1_select := "000";
@@ -224,7 +243,7 @@ begin
       when S0 =>
         n_inst_write := '0';
         n_pc_write := '1';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -247,7 +266,7 @@ begin
       when S1 =>
         n_inst_write := '1';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -270,12 +289,12 @@ begin
       when S2 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
-        n_alu2_select := "000";
-        n_alureg_write := '0';
+        n_alu2_select := "100";
+        n_alureg_write := '1';
         n_addr_select := "00";
         n_mem_write := '0';
         n_memreg_write := '0';
@@ -293,7 +312,7 @@ begin
       when S3 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '1';
         n_alu1_select := "001";
@@ -316,7 +335,7 @@ begin
       when S4 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -339,7 +358,7 @@ begin
       when S5 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "001";
@@ -362,7 +381,7 @@ begin
       when S6 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -385,7 +404,7 @@ begin
       when S7 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -408,7 +427,7 @@ begin
       when S8 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -431,7 +450,7 @@ begin
       when S9 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "011";
@@ -454,7 +473,7 @@ begin
       when S10 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -477,7 +496,7 @@ begin
       when S11 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -497,10 +516,38 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+      when S12 =>
+        n_inst_write := '0';
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "001";
+        n_alu2_select := "101";
+        n_alureg_write := '1';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+        if(zero_flag = '1') then
+          n_pc_in_select := "100";
+          n_pc_write := '1';
+        else 
+          n_pc_in_select := "000";
+          n_pc_write := '0';
+        end if;
       when S13 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -523,7 +570,7 @@ begin
       when S14 =>
         n_inst_write := '0';
         n_pc_write := '1';
-        n_pc_in_select := "10";
+        n_pc_in_select := "010";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -543,10 +590,33 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
+      when S15 =>
+        n_inst_write := '0';
+        n_pc_write := '1';
+        n_pc_in_select := "001";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "000";
+        n_alu2_select := "110";
+        n_alureg_write := '0';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '0';
+        n_regdata_select := "00";
+        n_regwrite_select := "01";
+        n_reg_write := '1';
+        n_t1_write := '0';
+        n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
       when S16 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "100";
@@ -569,7 +639,7 @@ begin
       when S17 =>
         n_inst_write := '0';
         n_pc_write := '0';
-        n_pc_in_select := "00";
+        n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "010";
@@ -596,7 +666,7 @@ begin
       when end_state =>
         n_inst_write := '0';
         n_pc_write := '1';
-        n_pc_in_select := "01";
+        n_pc_in_select := "001";
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -621,7 +691,7 @@ begin
     if reset = '1' then
       inst_write <= '0';
       pc_write <= '0';
-      pc_in_select <= "00";
+      pc_in_select <= "000";
       alu_op <= '0';
       alu_op_select <= '0';
       alu1_select <= "000";

@@ -10,7 +10,7 @@ entity Datapath is
 
     -- Program counter write / select
     pc_write: in std_logic;
-    pc_in_select: in std_logic_vector(1 downto 0);
+    pc_in_select: in std_logic_vector(2 downto 0);
 
     -- Select the two ALU inputs / op_code
     alu_op: in std_logic;
@@ -97,6 +97,7 @@ architecture Mixed of Datapath is
   -- Zero Pad / Left Shift / Sign Extender signals
   signal ZERO_PAD9: std_logic_vector(15 downto 0);
   signal LEFT_SHIFT6: std_logic_vector(15 downto 0);
+  signal LEFT_SHIFT9: std_logic_vector(15 downto 0);
   signal SE6_out: std_logic_vector(15 downto 0);
   signal SE9_out: std_logic_vector(15 downto 0);
 
@@ -143,6 +144,7 @@ begin
              SE9_out when alu2_select = "011" else
              LEFT_SHIFT6 when alu2_select = "100" else
              TwosCmp_out when alu2_select = "101" else
+             LEFT_SHIFT9 when alu2_select = "110" else
              CONST_0;
 
   ALU_opcode <= alu_op when alu_op_select = '0' else
@@ -158,10 +160,12 @@ begin
   MEMWRITE <= mem_write when reset = '0' else external_mem_write;
 
   -- Program Counter Dataflow logic
-  PC_in <= CONST_0 when pc_in_select = "00" else
-           ALU_out when pc_in_select = "01" else
-           T1_out when pc_in_select = "10" else
-           T2_out when pc_in_select = "11";
+  PC_in <= CONST_0 when pc_in_select = "000" else
+           ALU_out when pc_in_select = "001" else
+           T1_out when pc_in_select = "010" else
+           T2_out when pc_in_select = "011" else
+           ALUREG_out when pc_in_select = "100"else
+           CONST_0;
 
   -- Register File Dataflow
   READ1 <= INSTRUCTION(8 downto 6);
@@ -278,10 +282,15 @@ begin
          input => INSTRUCTION(8 downto 0),
          output => SE9_out
        );
-  LS: LeftShift
+  LS6: LeftShift
       port map (
         input => SE6_out,
         output => LEFT_SHIFT6
+      );
+  LS9: LeftShift
+      port map (
+        input => SE9_out,
+        output => LEFT_SHIFT9
       );
   TwoCmp: TwosComplement
       port map (

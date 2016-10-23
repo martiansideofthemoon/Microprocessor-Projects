@@ -19,7 +19,7 @@ architecture Struct of TopLevel is
 
   -- Program counter write / select
   signal pc_write: std_logic;
-  signal pc_in_select: std_logic_vector(1 downto 0);
+  signal pc_in_select: std_logic_vector(2 downto 0);
 
   -- Select the two ALU inputs / op_code
   signal alu_op: std_logic;

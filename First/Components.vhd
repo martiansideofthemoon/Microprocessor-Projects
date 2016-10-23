@@ -155,7 +155,7 @@ package ProcessorComponents is
 
     -- Program counter write / select
     pc_write: in std_logic;
-    pc_in_select: in std_logic_vector(1 downto 0);
+    pc_in_select: in std_logic_vector(2 downto 0);
 
     -- Select the two ALU inputs / op_code
     alu_op: in std_logic;
@@ -216,7 +216,7 @@ package ProcessorComponents is
 
     -- Program counter write / select
     pc_write: out std_logic;
-    pc_in_select: out std_logic_vector(1 downto 0);
+    pc_in_select: out std_logic_vector(2 downto 0);
 
     -- Select the two ALU inputs / op_code
     alu_op: out std_logic;
