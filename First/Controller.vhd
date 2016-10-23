@@ -149,8 +149,10 @@ begin
       when S13 =>
         if inst_type = JLR then
           nstate := S14;
-        else
+        elsif inst_type = JAL then
           nstate := S15;
+        else
+          nstate := end_state;
         end if;
       when S14 =>
         if pc_updated = '1' then
@@ -258,8 +260,11 @@ begin
 
     case state is
       when S0 =>
-        n_inst_write := '0';
+      -- First state whenever the code is loaded
+      -- Sets PC to 0
         n_pc_write := '1';
+      -- default
+        n_inst_write := '0';
         n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
@@ -281,7 +286,11 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S1 =>
+      -- Always the first state of every instruction.
+      -- Fetches the instruction
+        n_addr_select := "00";
         n_inst_write := '1';
+      -- default
         n_pc_write := '0';
         n_pc_in_select := "000";
         n_alu_op := '0';
@@ -289,7 +298,6 @@ begin
         n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
-        n_addr_select := "00";
         n_mem_write := '0';
         n_memreg_write := '0';
         n_regread2_select := '0';
@@ -304,37 +312,44 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S2 =>
+      -- Common Second state of all instructions
+      -- For S2:
+        n_t1_write := '1';
+        n_t2_write := '1';
+        n_alu1_select := "000";
+        n_alu2_select := "010";
+        n_alureg_write := '1';
+        n_pl_select := '1';
+        n_regread2_select := '0';
+      --default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "000";
-        n_alu2_select := "010";
-        n_alureg_write := '1';
         n_addr_select := "00";
         n_mem_write := '0';
         n_memreg_write := '0';
-        n_regread2_select := '0';
         n_regdata_select := "00";
         n_regwrite_select := "00";
         n_reg_write := '0';
-        n_t1_write := '1';
-        n_t2_write := '1';
         n_set_carry := '0';
         n_set_zero := '0';
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
-        n_pl_select := '1';
       when S3 =>
-        n_inst_write := '0';
-        n_pc_write := '0';
-        n_pc_in_select := "000";
-        n_alu_op := '0';
+      -- For ALU operations: ADD,ADC,ADZ,NDU,NDZ,NDC 
         n_alu_op_select := '1';
         n_alu1_select := "001";
         n_alu2_select := "001";
         n_alureg_write := '1';
+        n_carry_enable_select := '1';
+        n_zero_enable_select := '1';
+      -- default
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "000";
+        n_alu_op := '0';
         n_addr_select := "00";
         n_mem_write := '0';
         n_memreg_write := '0';
@@ -346,10 +361,12 @@ begin
         n_t2_write := '0';
         n_set_carry := '0';
         n_set_zero := '0';
-        n_carry_enable_select := '1';
-        n_zero_enable_select := '1';
         n_pl_select := '0';
       when S4 =>
+      -- For ADZ,ADC,NDC,NDZ
+        n_reg_write := '1';
+        n_regwrite_select := "00";
+      -- default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
@@ -363,8 +380,6 @@ begin
         n_memreg_write := '0';
         n_regread2_select := '0';
         n_regdata_select := "00";
-        n_regwrite_select := "00";
-        n_reg_write := '1';
         n_t1_write := '0';
         n_t2_write := '0';
         n_set_carry := '0';
@@ -373,14 +388,18 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S5 =>
+      -- For LW,SW
+        n_alu1_select := "001";
+        n_alu2_select := "010";
+        n_alureg_write := '1';
+        n_carry_enable_select := '1';
+        n_zero_enable_select := '1';
+      -- default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "001";
-        n_alu2_select := "010";
-        n_alureg_write := '1';
         n_addr_select := "00";
         n_mem_write := '0';
         n_memreg_write := '0';
@@ -392,10 +411,12 @@ begin
         n_t2_write := '0';
         n_set_carry := '0';
         n_set_zero := '0';
-        n_carry_enable_select := '1';
-        n_zero_enable_select := '1';
         n_pl_select := '0';
       when S6 =>
+      -- For LW
+        n_addr_select := "01";
+        n_memreg_write := '1';
+      -- default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
@@ -404,9 +425,7 @@ begin
         n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
-        n_addr_select := "01";
         n_mem_write := '0';
-        n_memreg_write := '1';
         n_regread2_select := '0';
         n_regdata_select := "00";
         n_regwrite_select := "00";
@@ -419,6 +438,11 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S7 =>
+      -- For LW
+        n_regdata_select := "01";
+        n_regwrite_select := "01";
+        n_reg_write := '1';
+      --default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
@@ -431,9 +455,6 @@ begin
         n_mem_write := '0';
         n_memreg_write := '0';
         n_regread2_select := '0';
-        n_regdata_select := "01";
-        n_regwrite_select := "01";
-        n_reg_write := '1';
         n_t1_write := '0';
         n_t2_write := '0';
         n_set_carry := '0';
@@ -442,6 +463,10 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S8 =>
+      -- For SW
+        n_addr_select := "01";
+        n_mem_write := '1';
+      --default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
@@ -450,8 +475,6 @@ begin
         n_alu1_select := "000";
         n_alu2_select := "000";
         n_alureg_write := '0';
-        n_addr_select := "01";
-        n_mem_write := '1';
         n_memreg_write := '0';
         n_regread2_select := '0';
         n_regdata_select := "00";
@@ -465,14 +488,18 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S9 =>
+      -- For ADI
+        n_alu1_select := "011";
+        n_alu2_select := "001";
+        n_alureg_write := '1';
+        n_carry_enable_select := '1';
+        n_zero_enable_select := '1';
+      -- default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "011";
-        n_alu2_select := "001";
-        n_alureg_write := '1';
         n_addr_select := "00";
         n_mem_write := '0';
         n_memreg_write := '0';
@@ -484,10 +511,13 @@ begin
         n_t2_write := '0';
         n_set_carry := '0';
         n_set_zero := '0';
-        n_carry_enable_select := '1';
-        n_zero_enable_select := '1';
         n_pl_select := '0';
       when S10 =>
+      --For ADI
+        n_regdata_select := "00";
+        n_regwrite_select := "10";
+        n_reg_write := '1';
+      -- default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
@@ -500,9 +530,6 @@ begin
         n_mem_write := '0';
         n_memreg_write := '0';
         n_regread2_select := '0';
-        n_regdata_select := "00";
-        n_regwrite_select := "10";
-        n_reg_write := '1';
         n_t1_write := '0';
         n_t2_write := '0';
         n_set_carry := '0';
@@ -511,6 +538,11 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S11 =>
+      -- For LHI
+        n_regdata_select := "10";
+        n_regwrite_select := "01";
+        n_reg_write := '1';
+      --Default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
@@ -523,9 +555,6 @@ begin
         n_mem_write := '0';
         n_memreg_write := '0';
         n_regread2_select := '0';
-        n_regdata_select := "10";
-        n_regwrite_select := "01";
-        n_reg_write := '1';
         n_t1_write := '0';
         n_t2_write := '0';
         n_set_carry := '0';
@@ -534,12 +563,21 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S12 =>
-        n_inst_write := '0';
-        n_alu_op := '0';
-        n_alu_op_select := '0';
+      -- For BEQ
         n_alu1_select := "001";
         n_alu2_select := "101";
         n_alureg_write := '1';
+        if(zero_flag = '1') then
+          n_pc_in_select := "100";
+          n_pc_write := '1';
+        else
+          n_pc_in_select := "000";
+          n_pc_write := '0';
+        end if;
+      --default
+        n_inst_write := '0';
+        n_alu_op := '0';
+        n_alu_op_select := '0';
         n_addr_select := "00";
         n_mem_write := '0';
         n_memreg_write := '0';
@@ -554,22 +592,17 @@ begin
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
-        if(zero_flag = '1') then
-          n_pc_in_select := "100";
-          n_pc_write := '1';
-        else
-          n_pc_in_select := "000";
-          n_pc_write := '0';
-        end if;
       when S13 =>
+      --For JLR and JAL
+        n_alu1_select := "000";
+        n_alu2_select := "000";
+        n_alureg_write := '1';
+      --Default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "000";
-        n_alu2_select := "000";
-        n_alureg_write := '1';
         n_addr_select := "00";
         n_mem_write := '0';
         n_memreg_write := '0';
@@ -585,9 +618,14 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S14 =>
-        n_inst_write := '0';
+      --For JLR
         n_pc_write := '1';
         n_pc_in_select := "010";
+        n_regdata_select := "00";
+        n_regwrite_select := "01";
+        n_reg_write := '1';
+      -- default
+        n_inst_write := '0';
         n_alu_op := '0';
         n_alu_op_select := '0';
         n_alu1_select := "000";
@@ -597,9 +635,6 @@ begin
         n_mem_write := '0';
         n_memreg_write := '0';
         n_regread2_select := '0';
-        n_regdata_select := "00";
-        n_regwrite_select := "01";
-        n_reg_write := '1';
         n_t1_write := '0';
         n_t2_write := '0';
         n_set_carry := '0';
@@ -608,21 +643,23 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S15 =>
-        n_inst_write := '0';
+      --For JAL
         n_pc_write := '1';
         n_pc_in_select := "001";
-        n_alu_op := '0';
-        n_alu_op_select := '0';
         n_alu1_select := "000";
         n_alu2_select := "011";
+        n_regdata_select := "00";
+        n_regwrite_select := "01";
+        n_reg_write := '1';
+      --Default
+        n_inst_write := '0';
+        n_alu_op := '0';
+        n_alu_op_select := '0';
         n_alureg_write := '0';
         n_addr_select := "00";
         n_mem_write := '0';
         n_memreg_write := '0';
         n_regread2_select := '0';
-        n_regdata_select := "00";
-        n_regwrite_select := "01";
-        n_reg_write := '1';
         n_t1_write := '0';
         n_t2_write := '0';
         n_set_carry := '0';
@@ -631,17 +668,20 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S16 =>
+      --For LM
+        n_alu1_select := "101";
+        n_alu2_select := "001";
+        n_alureg_write := '1';
+        n_addr_select := "11";
+        n_memreg_write := '1';
+        n_pl_select := '1';
+      --default  
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "101";
-        n_alu2_select := "001";
-        n_alureg_write := '1';
-        n_addr_select := "11";
         n_mem_write := '0';
-        n_memreg_write := '1';
         n_regread2_select := '0';
         n_regdata_select := "00";
         n_regwrite_select := "00";
@@ -652,20 +692,13 @@ begin
         n_set_zero := '0';
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
-        n_pl_select := '1';
       when S17 =>
-        n_inst_write := '0';
-        n_pc_write := '0';
-        n_pc_in_select := "000";
-        n_alu_op := '0';
-        n_alu_op_select := '0';
+      --For SM:
         n_alu1_select := "010";
         n_alu2_select := "000";
         n_alureg_write := '1';
         n_addr_select := "01";
-        n_mem_write := '0';
         n_memreg_write := '1';
-        n_regread2_select := '0';
         n_regdata_select := "01";
         n_regwrite_select := "11";
         if plinput_zero = '1' then
@@ -673,6 +706,14 @@ begin
         else
           n_reg_write := '1';
         end if;
+      --default
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "000";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_mem_write := '0';
+        n_regread2_select := '0';
         n_t1_write := '0';
         n_t2_write := '0';
         n_set_carry := '0';
@@ -681,59 +722,65 @@ begin
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S18 =>
+      --For LM
+        n_alu1_select := "100";
+        n_alu2_select := "001";
+        n_alureg_write := '1';
+        n_regread2_select := '1';
+        n_t2_write := '1';
+      --Default
         n_inst_write := '0';
         n_pc_write := '0';
         n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "100";
-        n_alu2_select := "001";
-        n_alureg_write := '1';
         n_addr_select := "00";
         n_mem_write := '0';
         n_memreg_write := '0';
-        n_regread2_select := '1';
         n_regdata_select := "00";
         n_regwrite_select := "00";
         n_reg_write := '0';
         n_t1_write := '0';
-        n_t2_write := '1';
         n_set_carry := '0';
         n_set_zero := '0';
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when S19 =>
-        n_inst_write := '0';
-        n_pc_write := '0';
-        n_pc_in_select := "000";
-        n_alu_op := '0';
-        n_alu_op_select := '0';
+      -- For LM
         n_alu1_select := "010";
         n_alu2_select := "000";
         n_alureg_write := '1';
         n_addr_select := "01";
         n_mem_write := '1';
-        n_memreg_write := '0';
         n_regread2_select := '1';
         n_regdata_select := "01";
         n_regwrite_select := "11";
+        n_t2_write := '1';
+      --default
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "000";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_memreg_write := '0';
         n_reg_write := '0';
         n_t1_write := '0';
-        n_t2_write := '1';
         n_set_carry := '0';
         n_set_zero := '0';
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
         n_pl_select := '0';
       when end_state =>
-        n_inst_write := '0';
+      -- Common end_state for all in which pc not updated
         n_pc_write := '1';
         n_pc_in_select := "001";
-        n_alu_op := '0';
-        n_alu_op_select := '0';
         n_alu1_select := "000";
         n_alu2_select := "000";
+      --default
+        n_inst_write := '0';
+        n_alu_op := '0';
+        n_alu_op_select := '0';
         n_alureg_write := '0';
         n_addr_select := "00";
         n_mem_write := '0';
