@@ -62,7 +62,7 @@ entity Controller is
 end entity;
 architecture Struct of Controller is
   type FsmState is (S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11,
-                    S12, S13, S14, S15, S16, S17, end_state);
+                    S12, S13, S14, S15, S16, S17, S18, S19, end_state);
   signal state: FsmState;
 begin
 
@@ -91,6 +91,8 @@ begin
           nstate := S13;
         elsif inst_type = LM then
           nstate := S16;
+        elsif inst_type = SM then
+          nstate := S18;
         else
           nstate := end_state;
         end if;
@@ -167,7 +169,7 @@ begin
         if plinput_zero = '1' then
           nstate := end_state;
         else
-          nstate := S17;
+          nstate := S18;
         end if;
       when S17 =>
         if plinput_zero = '1' and pc_updated = '1' then
@@ -176,6 +178,22 @@ begin
           nstate := end_state;
         else
           nstate := S17;
+        end if;
+      when S18 =>
+        -- In this case, all 8 bits are zero
+        if plinput_zero = '1' then
+          nstate := end_state;
+        else
+          nstate := S19;
+        end if;
+      when S19 =>
+        -- In this case, all 8 bits are zero
+        if plinput_zero = '1' and pc_updated = '1' then
+          nstate := S1;
+        elsif plinput_zero = '1' and pc_updated = '0' then
+          nstate := end_state;
+        else
+          nstate := S19;
         end if;
       when end_state =>
         nstate := S1;
@@ -307,7 +325,7 @@ begin
         n_set_zero := '0';
         n_carry_enable_select := '0';
         n_zero_enable_select := '0';
-        n_pl_select := '0';
+        n_pl_select := '1';
       when S3 =>
         n_inst_write := '0';
         n_pc_write := '0';
@@ -657,6 +675,52 @@ begin
         end if;
         n_t1_write := '0';
         n_t2_write := '0';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+      when S18 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "000";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "100";
+        n_alu2_select := "001";
+        n_alureg_write := '1';
+        n_addr_select := "00";
+        n_mem_write := '0';
+        n_memreg_write := '0';
+        n_regread2_select := '1';
+        n_regdata_select := "00";
+        n_regwrite_select := "00";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '1';
+        n_set_carry := '0';
+        n_set_zero := '0';
+        n_carry_enable_select := '0';
+        n_zero_enable_select := '0';
+        n_pl_select := '0';
+      when S19 =>
+        n_inst_write := '0';
+        n_pc_write := '0';
+        n_pc_in_select := "000";
+        n_alu_op := '0';
+        n_alu_op_select := '0';
+        n_alu1_select := "010";
+        n_alu2_select := "000";
+        n_alureg_write := '1';
+        n_addr_select := "01";
+        n_mem_write := '1';
+        n_memreg_write := '0';
+        n_regread2_select := '1';
+        n_regdata_select := "01";
+        n_regwrite_select := "11";
+        n_reg_write := '0';
+        n_t1_write := '0';
+        n_t2_write := '1';
         n_set_carry := '0';
         n_set_zero := '0';
         n_carry_enable_select := '0';
