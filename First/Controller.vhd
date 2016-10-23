@@ -163,9 +163,8 @@ begin
           nstate := end_state;
         end if;
       when S16 =>
-        if plinput_zero = '1' and pc_updated = '1' then
-          nstate := S1;
-        elsif plinput_zero = '1' and pc_updated = '0' then
+        -- In this case, all 8 bits are zero
+        if plinput_zero = '1' then
           nstate := end_state;
         else
           nstate := S17;
@@ -540,7 +539,7 @@ begin
         if(zero_flag = '1') then
           n_pc_in_select := "100";
           n_pc_write := '1';
-        else 
+        else
           n_pc_in_select := "000";
           n_pc_write := '0';
         end if;
@@ -619,8 +618,8 @@ begin
         n_pc_in_select := "000";
         n_alu_op := '0';
         n_alu_op_select := '0';
-        n_alu1_select := "100";
-        n_alu2_select := "000";
+        n_alu1_select := "101";
+        n_alu2_select := "001";
         n_alureg_write := '1';
         n_addr_select := "11";
         n_mem_write := '0';

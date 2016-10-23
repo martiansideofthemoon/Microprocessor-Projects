@@ -137,7 +137,9 @@ begin
              T1_out when alu1_select = "001" else
              ALUREG_out when alu1_select = "010" else
              SE6_out when alu1_select = "011" else
-             CONST_0 when alu1_select = "100";
+             CONST_0 when alu1_select = "100" else
+             CONST_2 when alu1_select = "101" else
+             CONST_0;
   ALU2_in <= CONST_2 when alu2_select = "000" else
              T2_out when alu2_select = "001" else
              SE6_out when alu2_select = "010" else
