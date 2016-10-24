@@ -3,12 +3,21 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library std;
 use std.textio.all;
-library work;
-use work.ProcessorComponents.all;
+--library work;
+--use work.ProcessorComponents.all;
 
 entity Testbench is
 end entity;
 architecture Behave of Testbench is
+component TopLevel is
+  port (
+    clk, reset: in std_logic;
+    -- Data coming from outside
+    external_addr: in std_logic_vector(15 downto 0);
+    external_data: in std_logic_vector(15 downto 0);
+    external_mem_write: in std_logic
+  );
+end component TopLevel;
   signal data: std_logic_vector(15 downto 0) := "0000000000000000";
   signal addr : std_logic_vector(15 downto 0) := "0000000000000000";
   signal mem_write: std_logic := '0';

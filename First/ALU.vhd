@@ -35,7 +35,7 @@ begin
                       alu_in_1(14 downto 0) > alu_out_read(14 downto 0) else '0';
    carry <= '1' when carry1 = '1' or carry2 = '1' else '0';
 
-   process(op_in, alu_in_1, alu_in_2)
+   process(op_in, alu_in_1, alu_in_2, two_complement1, two_complement2)
    begin
 
    if(op_in = '0') then

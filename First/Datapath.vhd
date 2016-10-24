@@ -160,7 +160,8 @@ begin
                 PC_out when reset = '0' and addr_select = "00" else
                 ALUREG_out when reset = '0' and addr_select = "01" else
                 T1_out when reset = '0' and addr_select = "10" else
-                T2_out when reset = '0' and addr_select = "11";
+                T2_out when reset = '0' and addr_select = "11" else
+                CONST_0;
 
   MEMDATA_in <= T2_out when reset = '0' else external_data;
   MEMWRITE <= mem_write when reset = '0' else external_mem_write;
@@ -180,11 +181,13 @@ begin
   WRITE3 <= INSTRUCTION(5 downto 3) when regwrite_select = "00" else
             INSTRUCTION(11 downto 9) when regwrite_select = "01" else
             INSTRUCTION(8 downto 6) when regwrite_select = "10" else
-            PL_OUTPUT when regwrite_select = "11";
+            PL_OUTPUT when regwrite_select = "11" else
+            "000";
   REGDATA_in <= ALUREG_out when regdata_select = "00" else
                 MEMREG_out when regdata_select = "01" else
                 ZERO_PAD9 when regdata_select = "10" else
-                PC_out when regdata_select = "11";
+                PC_out when regdata_select = "11" else
+                CONST_0;
 
   -- Flags data flow logic
   zero_flag <= ALU_zero;

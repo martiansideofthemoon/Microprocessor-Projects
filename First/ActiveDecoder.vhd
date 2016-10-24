@@ -14,15 +14,19 @@ end entity ActiveDecoder;
 architecture Struct of ActiveDecoder is
 begin
   process(instruction, carry, zero)
+  variable n_active: std_logic := '0';
   begin
     if (instruction = "00") then
-      active <= '1';
+      n_active := '1';
     elsif (instruction = "01") then
-      active <= zero;
+      n_active := zero;
     elsif (instruction = "10") then
-      active <= carry;
+      n_active := carry;
     elsif (instruction = "11") then
-      active <= carry and zero;
+      n_active := carry and zero;
+    else
+      n_active := '0';
     end if;
+    active <= n_active;
   end process;
 end Struct;

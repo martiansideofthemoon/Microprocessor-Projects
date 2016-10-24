@@ -70,7 +70,7 @@ architecture Struct of Controller is
 begin
 
   -- Next state process
-  process(clk, reset, active, inst_type, plinput_zero, zero_flag, pc_updated)
+  process(clk, state, reset, active, inst_type, plinput_zero, zero_flag, pc_updated)
     variable nstate: FsmState;
   begin
     nstate := S0;
@@ -847,7 +847,7 @@ begin
       carry_enable_select <= '0';
       zero_enable_select <= '0';
       pl_select <= '0';
-      n_zero_select := '0';
+      zero_select <= '0';
     else
       inst_write <= n_inst_write;
       pc_write <= n_pc_write;

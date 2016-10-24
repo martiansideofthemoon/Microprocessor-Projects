@@ -68,6 +68,8 @@ begin
       dout <= "01000000";
     elsif (din = "111") then
       dout <= "10000000";
+    else
+      dout <= "00000000";
     end if;
   end process;
 end Struct;
