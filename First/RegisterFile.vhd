@@ -32,6 +32,8 @@ end RegisterFile;
 architecture Struct of RegisterFile is
   type registerFile is array(0 to 7) of std_logic_vector(15 downto 0);
   signal registers: registerFile := (others => (others => '0'));
+  signal pc_data_in: std_logic_vector(15 downto 0);
+  signal pc_enable: std_logic;
 begin
   external_r0 <= registers(0);
   external_r1 <= registers(1);
@@ -40,16 +42,17 @@ begin
   external_r4 <= registers(4);
   external_r5 <= registers(5);
   external_r6 <= registers(6);
+  pc_data_in <= PC_in when PC_write = '1' else din;
+  pc_enable <= '1' when PC_write = '1' or (writeA3 = "111" and register_write = '1') else '0';
   regFile : process (clk) is
   begin
     if rising_edge(clk) then
       -- Write and bypass
-      if register_write = '1' then
+      if register_write = '1' and writeA3 /= "111" then
         registers(to_integer(unsigned(writeA3))) <= din;  -- Write
       end if;
-
-      if PC_write = '1' then
-        registers(7) <= PC_in;  -- Write
+      if pc_enable = '1' then
+        registers(7) <= pc_data_in;
       end if;
     end if;
   end process regFile;

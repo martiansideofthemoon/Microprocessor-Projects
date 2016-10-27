@@ -76,7 +76,7 @@ end component TopLevel;
   end to_std_logic;
 
 begin
-  clk <= not clk after 7 ns; -- assume 10ns clock.
+  clk <= not clk after 5 ns; -- assume 10ns clock.
 
   process
     variable err_flag : boolean := false;
