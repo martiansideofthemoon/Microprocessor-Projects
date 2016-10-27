@@ -22,7 +22,7 @@ begin
   begin
     if (op_code = "0000" and instruction(5 downto 3) = "111") then
       npc_updated := '1';
-    elsif (op_code = "0001" and instruction(11 downto 9) = "111") then
+    elsif (op_code = "0001" and instruction(8 downto 6) = "111") then
       npc_updated := '1';
     elsif (op_code = "0010" and instruction(5 downto 3) = "111") then
       npc_updated := '1';

@@ -63,7 +63,16 @@ entity Datapath is
     -- Data coming from outside
     external_addr: in std_logic_vector(15 downto 0);
     external_data: in std_logic_vector(15 downto 0);
-    external_mem_write: in std_logic
+    external_mem_write: in std_logic;
+    external_pc_out: out std_logic_vector(15 downto 0);
+    external_ir: out std_logic_vector(15 downto 0);
+    external_r0: out std_logic_vector(15 downto 0);
+    external_r1: out std_logic_vector(15 downto 0);
+    external_r2: out std_logic_vector(15 downto 0);
+    external_r3: out std_logic_vector(15 downto 0);
+    external_r4: out std_logic_vector(15 downto 0);
+    external_r5: out std_logic_vector(15 downto 0);
+    external_r6: out std_logic_vector(15 downto 0)
   );
 end entity;
 
@@ -136,6 +145,9 @@ architecture Mixed of Datapath is
   signal PL_OUTPUT: std_logic_vector(2 downto 0);
 
 begin
+  -- External mapping
+  external_ir <= INSTRUCTION;
+  external_pc_out <= PC_out;
   -- ALU Dataflow logic
   ALU1_in <= PC_out when alu1_select = "000" else
              T1_out when alu1_select = "001" else
@@ -239,7 +251,14 @@ begin
         writeA3 => WRITE3,
         register_write => reg_write,
         din => REGDATA_in,
-        zero => REGLOAD_zero
+        zero => REGLOAD_zero,
+        external_r0 => external_r0,
+        external_r1 => external_r1,
+        external_r2 => external_r2,
+        external_r3 => external_r3,
+        external_r4 => external_r4,
+        external_r5 => external_r5,
+        external_r6 => external_r6
       );
   T1: DataRegister
       generic map (data_width => 16)

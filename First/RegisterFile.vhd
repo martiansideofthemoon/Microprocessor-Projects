@@ -17,7 +17,14 @@ entity RegisterFile is
     PC_in        : in std_logic_vector(15 downto 0);
     PC_out       : out  std_logic_vector(15 downto 0);
     clk          : in  std_logic;
-    zero         : out std_logic
+    zero         : out std_logic;
+    external_r0  : out std_logic_vector(15 downto 0);
+    external_r1  : out std_logic_vector(15 downto 0);
+    external_r2  : out std_logic_vector(15 downto 0);
+    external_r3  : out std_logic_vector(15 downto 0);
+    external_r4  : out std_logic_vector(15 downto 0);
+    external_r5  : out std_logic_vector(15 downto 0);
+    external_r6  : out std_logic_vector(15 downto 0)
     );
 end RegisterFile;
 
@@ -26,6 +33,13 @@ architecture Struct of RegisterFile is
   type registerFile is array(0 to 7) of std_logic_vector(15 downto 0);
   signal registers: registerFile := (others => (others => '0'));
 begin
+  external_r0 <= registers(0);
+  external_r1 <= registers(1);
+  external_r2 <= registers(2);
+  external_r3 <= registers(3);
+  external_r4 <= registers(4);
+  external_r5 <= registers(5);
+  external_r6 <= registers(6);
   regFile : process (clk) is
   begin
     if rising_edge(clk) then

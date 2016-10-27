@@ -115,7 +115,14 @@ package ProcessorComponents is
     PC_in        : in std_logic_vector(15 downto 0);
     PC_out       : out  std_logic_vector(15 downto 0);
     clk          : in  std_logic;
-    zero         : out std_logic
+    zero         : out std_logic;
+    external_r0: out std_logic_vector(15 downto 0);
+    external_r1: out std_logic_vector(15 downto 0);
+    external_r2: out std_logic_vector(15 downto 0);
+    external_r3: out std_logic_vector(15 downto 0);
+    external_r4: out std_logic_vector(15 downto 0);
+    external_r5: out std_logic_vector(15 downto 0);
+    external_r6: out std_logic_vector(15 downto 0)
   );
   end component RegisterFile;
 
@@ -209,7 +216,16 @@ package ProcessorComponents is
     -- Data coming from outside
     external_addr: in std_logic_vector(15 downto 0);
     external_data: in std_logic_vector(15 downto 0);
-    external_mem_write: in std_logic
+    external_mem_write: in std_logic;
+    external_pc_out: out std_logic_vector(15 downto 0);
+    external_ir: out std_logic_vector(15 downto 0);
+    external_r0: out std_logic_vector(15 downto 0);
+    external_r1: out std_logic_vector(15 downto 0);
+    external_r2: out std_logic_vector(15 downto 0);
+    external_r3: out std_logic_vector(15 downto 0);
+    external_r4: out std_logic_vector(15 downto 0);
+    external_r5: out std_logic_vector(15 downto 0);
+    external_r6: out std_logic_vector(15 downto 0)
   );
   end component;
 
@@ -278,7 +294,16 @@ package ProcessorComponents is
       -- Data coming from outside
       external_addr: in std_logic_vector(15 downto 0);
       external_data: in std_logic_vector(15 downto 0);
-      external_mem_write: in std_logic
+      external_mem_write: in std_logic;
+      external_pc_out: out std_logic_vector(15 downto 0);
+      external_ir: out std_logic_vector(15 downto 0);
+      external_r0: out std_logic_vector(15 downto 0);
+      external_r1: out std_logic_vector(15 downto 0);
+      external_r2: out std_logic_vector(15 downto 0);
+      external_r3: out std_logic_vector(15 downto 0);
+      external_r4: out std_logic_vector(15 downto 0);
+      external_r5: out std_logic_vector(15 downto 0);
+      external_r6: out std_logic_vector(15 downto 0)
     );
   end component;
 end package;

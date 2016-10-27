@@ -9,11 +9,24 @@ entity TopLevel is
     -- Data coming from outside
     external_addr: in std_logic_vector(15 downto 0);
     external_data: in std_logic_vector(15 downto 0);
-    external_mem_write: in std_logic
+    external_mem_write: in std_logic;
+    external_pc_out: out std_logic_vector(15 downto 0);
+    external_ir: out std_logic_vector(15 downto 0);
+    external_r0: out std_logic_vector(15 downto 0);
+    --external_r1: out std_logic_vector(15 downto 0);
+    --external_r2: out std_logic_vector(15 downto 0);
+    --external_r3: out std_logic_vector(15 downto 0);
+    --external_r4: out std_logic_vector(15 downto 0);
+    external_r5: out std_logic_vector(15 downto 0);
+    external_r6: out std_logic_vector(15 downto 0)
   );
 end entity TopLevel;
 
 architecture Struct of TopLevel is
+  signal external_r1: std_logic_vector(15 downto 0);
+  signal external_r2: std_logic_vector(15 downto 0);
+  signal external_r3: std_logic_vector(15 downto 0);
+  signal external_r4: std_logic_vector(15 downto 0);
   -- Instruction Register write
   signal inst_write: std_logic;
 
@@ -136,6 +149,15 @@ DP: Datapath
     reset => reset,
     external_addr => external_addr,
     external_data => external_data,
-    external_mem_write => external_mem_write
+    external_mem_write => external_mem_write,
+    external_pc_out => external_pc_out,
+    external_ir => external_ir,
+    external_r0 => external_r0,
+    external_r1 => external_r1,
+    external_r2 => external_r2,
+    external_r3 => external_r3,
+    external_r4 => external_r4,
+    external_r5 => external_r5,
+    external_r6 => external_r6
     );
 end Struct;
