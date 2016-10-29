@@ -76,7 +76,7 @@ end component TopLevel;
   end to_std_logic;
 
 begin
-  clk <= not clk after 50 ns; -- assume 10ns clock.
+  clk <= not clk after 5 ns; -- assume 10ns clock.
 
   process
     variable err_flag : boolean := false;
@@ -99,25 +99,25 @@ begin
     addr <= "0000000000000000";
     wait until clk = '1';
 
-    while not endfile(INFILE) loop
-      readLine(INFILE, INPUT_LINE);
-      read(INPUT_LINE, din);
-      LINE_COUNT := LINE_COUNT + 1;
-      if (din = "1111111111111111") then
-        readLine(INFILE, INPUT_LINE);
-        read(INPUT_LINE, address);
-        address_int := to_integer(unsigned(to_std_logic_vector(address)));
-        mem_write <= '0';
-        addr <= std_logic_vector(to_unsigned(address_int, addr'length));
-        data <= to_std_logic_vector(din);
-      else
-        mem_write <= '1';
-        addr <= std_logic_vector(to_unsigned(address_int, addr'length));
-        data <= to_std_logic_vector(din);
-        address_int := address_int + 1;
-      end if;
-    	wait until clk = '1';
-    end loop;
+    --while not endfile(INFILE) loop
+    --  readLine(INFILE, INPUT_LINE);
+    --  read(INPUT_LINE, din);
+    --  LINE_COUNT := LINE_COUNT + 1;
+    --  if (din = "1111111111111111") then
+    --    readLine(INFILE, INPUT_LINE);
+    --    read(INPUT_LINE, address);
+    --    address_int := to_integer(unsigned(to_std_logic_vector(address)));
+    --    mem_write <= '0';
+    --    addr <= std_logic_vector(to_unsigned(address_int, addr'length));
+    --    data <= to_std_logic_vector(din);
+    --  else
+    --    mem_write <= '0';
+    --    addr <= std_logic_vector(to_unsigned(address_int, addr'length));
+    --    data <= to_std_logic_vector(din);
+    --    address_int := address_int + 1;
+    --  end if;
+    --	wait until clk = '1';
+    --end loop;
 
     reset <= '0';
 

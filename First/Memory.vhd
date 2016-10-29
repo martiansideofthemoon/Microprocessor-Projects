@@ -3,6 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library work;
 use work.ProcessorComponents.all;
+use work.MemoryComponent.all;
 
 entity Memory is
   port(
@@ -17,7 +18,7 @@ end Memory;
 
 architecture Struct of Memory is
   --signal memory_low : Memory;
-  signal mem_array: MemArray := (others => (others => '0'));
+  signal mem_array: MemArray := INIT_MEMORY;
   signal addr_plus: std_logic_vector(15 downto 0);
 begin
   addr_plus <= std_logic_vector(unsigned(addr) + 1);

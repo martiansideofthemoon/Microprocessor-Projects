@@ -5,7 +5,6 @@ use ieee.std_logic_1164.all;
 package ProcessorComponents is
 
   type OperationCode is (NONE, R_TYPE, LW, SW, ADI, LHI, LM, SM, BEQ, JAL, JLR);
-  type MemArray is array(0 to 127) of std_logic_vector(7 downto 0);
 
   component ClockDivider is
   port (
@@ -306,12 +305,6 @@ package ProcessorComponents is
       external_r5: out std_logic_vector(15 downto 0);
       external_r6: out std_logic_vector(15 downto 0)
     );
-  end component;
-
-  component ResetMemory is
-  port (
-    memory: out MemArray
-  );
   end component;
 
 end package;

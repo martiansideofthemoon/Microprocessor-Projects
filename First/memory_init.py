@@ -5,21 +5,20 @@ MEM_SIZE = 128
 commands = []
 memory = ["00000000"] * MEM_SIZE
 
-output = """
+output = """library std;
 library ieee;
 use ieee.std_logic_1164.all;
-library work;
-use work.ProcessorComponents.all;
-entity ResetMemory is
-  port (
-    memory: out MemArray
-  );
-end entity ResetMemory;
+package MemoryComponent is
 
-architecture Struct of ResetMemory is
-begin
+type MemArray is array(0 to 127) of std_logic_vector(7 downto 0);
+
+constant init_memory : MemArray := (
 """
-sample_end = "end Struct;"
+
+sample_end = """);
+
+end MemoryComponent;
+"""
 
 file_name = sys.argv[1]
 with open(file_name, 'r') as f:
@@ -43,7 +42,9 @@ while (index < len(commands)):
   index += 1
 
 for index, data in enumerate(memory):
-  output += "  memory(" + str(index) + ") <= \"" + data + "\";\n"
+  output += "  " + str(index) + " => \"" + data + "\",\n"
+
+output = output[:-2] + "\n"
 
 output += sample_end
 
