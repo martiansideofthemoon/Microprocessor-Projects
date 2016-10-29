@@ -7,16 +7,16 @@ entity TopLevel is
   port (
     clk, reset: in std_logic;
     -- Data coming from outside
-    external_addr: in std_logic_vector(15 downto 0);
-    external_data: in std_logic_vector(15 downto 0);
-    external_mem_write: in std_logic;
+    --external_addr: in std_logic_vector(15 downto 0);
+    --external_data: in std_logic_vector(15 downto 0);
+    --external_mem_write: in std_logic;
     external_pc_out: out std_logic_vector(15 downto 0);
     external_ir: out std_logic_vector(15 downto 0);
     external_r0: out std_logic_vector(15 downto 0);
     --external_r1: out std_logic_vector(15 downto 0);
     --external_r2: out std_logic_vector(15 downto 0);
-    --external_r3: out std_logic_vector(15 downto 0);
-    --external_r4: out std_logic_vector(15 downto 0);
+    external_r3: out std_logic_vector(15 downto 0);
+    external_r4: out std_logic_vector(15 downto 0);
     external_r5: out std_logic_vector(15 downto 0);
     external_r6: out std_logic_vector(15 downto 0)
   );
@@ -25,8 +25,9 @@ end entity TopLevel;
 architecture Struct of TopLevel is
   signal external_r1: std_logic_vector(15 downto 0);
   signal external_r2: std_logic_vector(15 downto 0);
-  signal external_r3: std_logic_vector(15 downto 0);
-  signal external_r4: std_logic_vector(15 downto 0);
+  signal external_addr: std_logic_vector(15 downto 0);
+  signal external_data: std_logic_vector(15 downto 0);
+  signal external_mem_write: std_logic := '0';
   -- Instruction Register write
   signal inst_write: std_logic;
 
@@ -48,8 +49,8 @@ architecture Struct of TopLevel is
 
   -- Choices for Register file
   signal regread2_select: std_logic;
-  signal regdata_select: std_logic_vector(1 downto 0);
-  signal regwrite_select: std_logic_vector(1 downto 0);
+  signal regdata_select: std_logic_vector(1 downto 0) := (others => '0');
+  signal regwrite_select: std_logic_vector(1 downto 0) := (others => '0');
   signal reg_write: std_logic;
   signal t1_write: std_logic;
   signal t2_write: std_logic;

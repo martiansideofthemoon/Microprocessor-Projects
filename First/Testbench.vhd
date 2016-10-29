@@ -13,23 +13,20 @@ component TopLevel is
   port (
     clk, reset: in std_logic;
     -- Data coming from outside
-    external_addr: in std_logic_vector(15 downto 0);
-    external_data: in std_logic_vector(15 downto 0);
-    external_mem_write: in std_logic;
     external_pc_out: out std_logic_vector(15 downto 0);
     external_ir: out std_logic_vector(15 downto 0);
     external_r0: out std_logic_vector(15 downto 0);
     --external_r1: out std_logic_vector(15 downto 0);
     --external_r2: out std_logic_vector(15 downto 0);
-    --external_r3: out std_logic_vector(15 downto 0);
-    --external_r4: out std_logic_vector(15 downto 0);
+    external_r3: out std_logic_vector(15 downto 0);
+    external_r4: out std_logic_vector(15 downto 0);
     external_r5: out std_logic_vector(15 downto 0);
     external_r6: out std_logic_vector(15 downto 0)
   );
 end component TopLevel;
-  signal data: std_logic_vector(15 downto 0) := "0000000000000000";
-  signal addr : std_logic_vector(15 downto 0) := "0000000000000000";
-  signal mem_write: std_logic := '0';
+  --signal data: std_logic_vector(15 downto 0) := "0000000000000000";
+  --signal addr : std_logic_vector(15 downto 0) := "0000000000000000";
+  --signal mem_write: std_logic := '0';
   signal clk: std_logic := '0';
   signal reset: std_logic := '1';
   signal external_pc_out: std_logic_vector(15 downto 0);
@@ -37,8 +34,8 @@ end component TopLevel;
   signal external_r0: std_logic_vector(15 downto 0);
   --signal external_r1: std_logic_vector(15 downto 0);
   --signal external_r2: std_logic_vector(15 downto 0);
-  --signal external_r3: std_logic_vector(15 downto 0);
-  --signal external_r4: std_logic_vector(15 downto 0);
+  signal external_r3: std_logic_vector(15 downto 0);
+  signal external_r4: std_logic_vector(15 downto 0);
   signal external_r5: std_logic_vector(15 downto 0);
   signal external_r6: std_logic_vector(15 downto 0);
 
@@ -96,7 +93,7 @@ begin
     variable address_int: integer := 0;
 
   begin
-    addr <= "0000000000000000";
+    --addr <= "0000000000000000";
     wait until clk = '1';
 
     --while not endfile(INFILE) loop
@@ -128,16 +125,16 @@ begin
   port map (
     clk => clk,
     reset => reset,
-    external_addr => addr,
-    external_data => data,
-    external_mem_write => mem_write,
+    --external_addr => addr,
+    --external_data => data,
+    --external_mem_write => mem_write,
     external_ir => external_ir,
     external_pc_out => external_pc_out,
     external_r0 => external_r0,
     --external_r1 => external_r1,
     --external_r2 => external_r2,
-    --external_r3 => external_r3,
-    --external_r4 => external_r4,
+    external_r3 => external_r3,
+    external_r4 => external_r4,
     external_r5 => external_r5,
     external_r6 => external_r6
   );
