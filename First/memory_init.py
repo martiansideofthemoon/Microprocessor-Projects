@@ -12,7 +12,7 @@ package MemoryComponent is
 
 type MemArray is array(0 to 127) of std_logic_vector(7 downto 0);
 
-constant init_memory : MemArray := (
+constant INIT_MEMORY : MemArray := (
 """
 
 sample_end = """);
@@ -32,7 +32,7 @@ while (index < len(commands)):
   command = commands[index]
   if command == "1111111111111111":
     index += 1
-    new_pointer = int(commands[index], 2)
+    new_pointer = int(commands[index], 2)*2
     pointer = new_pointer
   else:
     memory[pointer] = command[8:]
@@ -40,6 +40,7 @@ while (index < len(commands)):
     memory[pointer] = command[:8]
     pointer += 1
   index += 1
+
 
 for index, data in enumerate(memory):
   output += "  " + str(index) + " => \"" + data + "\",\n"
