@@ -5,6 +5,7 @@ use ieee.std_logic_1164.all;
 package ProcessorComponents is
 
   type OperationCode is (NONE, R_TYPE, LW, SW, ADI, LHI, LM, SM, BEQ, JAL, JLR);
+  constant DecodeSize: Integer := 14;
 
   component ClockDivider is
   port (
@@ -146,7 +147,7 @@ package ProcessorComponents is
   component InstructionDecoder is
   port (
     instruction: in std_logic_vector(15 downto 0);
-    output: out std_logic_vector(11 downto 0)
+    output: out std_logic_vector(DecodeSize-1 downto 0)
   );
   end component;
 
