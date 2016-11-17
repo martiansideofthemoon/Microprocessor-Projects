@@ -21,6 +21,7 @@ signal reg_write: std_logic;
 signal set_carry: std_logic;
 signal set_zero: std_logic;
 signal reg_A3: std_logic_vector(2 downto 0);
+signal pc_updated: std_logic;
 begin
   op_code <= instruction(15 downto 12);
   carry_logic <= instruction(1 downto 0);
@@ -33,7 +34,30 @@ begin
   output(9) <= set_carry;
   output(10) <= set_zero;
   output(13 downto 11) <= reg_A3;
+  output(14) <= pc_updated;
 
+  process(instruction, op_code)
+    variable npc_updated: std_logic := '0';
+  begin
+    if (op_code = "0000" and instruction(5 downto 3) = "111") then
+      npc_updated := '1';
+    elsif (op_code = "0001" and instruction(8 downto 6) = "111") then
+      npc_updated := '1';
+    elsif (op_code = "0010" and instruction(5 downto 3) = "111") then
+      npc_updated := '1';
+    elsif (op_code = "0100" and instruction(11 downto 9) = "111") then
+      npc_updated := '1';
+    elsif (op_code = "0011" and instruction(11 downto 9) = "111") then
+      npc_updated := '1';
+    elsif (op_code = "0110" and instruction(7) = '1') then
+      npc_updated := '1';
+    elsif (op_code = "1100" or op_code = "1000" or op_code = "1001") then
+      npc_updated := '1';
+    else
+      npc_updated := '0';
+    end if;
+    pc_updated <= npc_updated;
+  end process;
 
   process(op_code, carry_logic)
   begin

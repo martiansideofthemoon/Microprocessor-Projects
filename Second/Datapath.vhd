@@ -32,8 +32,8 @@ architecture Mixed of Datapath is
   signal PC_INCREMENT: std_logic_vector(15 downto 0);
   signal INST_MEMORY: std_logic_vector(15 downto 0);
 ---------------------------------------------------
-  signal P1_IN: std_logic_vector(15 downto 0);
-  signal P1_OUT: std_logic_vector(15 downto 0);
+  signal P1_IN: std_logic_vector(31 downto 0);
+  signal P1_OUT: std_logic_vector(31 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 2 - INSTRUCTION DECODE--------------
@@ -41,6 +41,8 @@ architecture Mixed of Datapath is
 ---------------------------------------------------
   signal P2_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P2_OUT: std_logic_vector(DecodeSize-1 downto 0);
+  signal P2_DATA_IN: std_logic_vector(15 downto 0);
+  signal P2_DATA_OUT: std_logic_vector(15 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 3 - REGISTER READ-------------------
@@ -49,8 +51,8 @@ architecture Mixed of Datapath is
 ---------------------------------------------------
   signal P3_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P3_OUT: std_logic_vector(DecodeSize-1 downto 0);
-  signal P3_DATA_IN: std_logic_vector(31 downto 0);
-  signal P3_DATA_OUT: std_logic_vector(31 downto 0);
+  signal P3_DATA_IN: std_logic_vector(47 downto 0);
+  signal P3_DATA_OUT: std_logic_vector(47 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 4 - EXECUTE STAGE-------------------
@@ -62,8 +64,10 @@ architecture Mixed of Datapath is
 ---------------------------------------------------
   signal P4_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P4_OUT: std_logic_vector(DecodeSize-1 downto 0);
-  signal P4_DATA_IN: std_logic_vector(15 downto 0);
-  signal P4_DATA_OUT: std_logic_vector(15 downto 0);
+  signal P4_DATA_IN: std_logic_vector(31 downto 0);
+  signal P4_DATA_OUT: std_logic_vector(31 downto 0);
+  signal P4_FLAG_IN: std_logic_vector(1 downto 0);
+  signal P4_FLAG_OUT: std_logic_vector(1 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 5 - MEMORY STAGE--------------------
@@ -74,8 +78,10 @@ architecture Mixed of Datapath is
 ---------------------------------------------------
   signal P5_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P5_OUT: std_logic_vector(DecodeSize-1 downto 0);
-  signal P5_DATA_IN: std_logic_vector(31 downto 0);
-  signal P5_DATA_OUT: std_logic_vector(31 downto 0);
+  signal P5_DATA_IN: std_logic_vector(47 downto 0);
+  signal P5_DATA_OUT: std_logic_vector(47 downto 0);
+  signal P5_FLAG_IN: std_logic_vector(1 downto 0);
+  signal P5_FLAG_OUT: std_logic_vector(1 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 6 - WRITE STAGE---------------------
@@ -86,6 +92,11 @@ architecture Mixed of Datapath is
   signal REGDATA_IN: std_logic_vector(15 downto 0);
   signal REGLOAD_zero: std_logic;
   signal reg_write: std_logic;
+
+  signal CARRY_IN: std_logic_vector(0 downto 0);
+  signal ZERO_IN: std_logic_vector(0 downto 0);
+  signal CARRY: std_logic_vector(0 downto 0);
+  signal ZERO: std_logic_vector(0 downto 0);
 
 begin
 ---------------------------------------------------
@@ -119,10 +130,11 @@ begin
 
   PC_IN <= PC_INCREMENT when reset = '0' else (others => '0');
 
-  P1_IN <= INST_MEMORY;
+  P1_IN(15 downto 0) <= INST_MEMORY;
+  P1_IN(31 downto 16) <= PC_IN;
 ----------------------------------------------------
   P1: DataRegister
-      generic map (data_width => 16)
+      generic map (data_width => 32)
       port map (
         Din => P1_IN,
         Dout => P1_OUT,
@@ -134,16 +146,25 @@ begin
 ---------STAGE 2 - INSTRUCTION DECODE--------------
   ID: InstructionDecoder
       port map (
-        instruction => P1_OUT,
+        instruction => P1_OUT(15 downto 0),
         output => INST_DECODE
       );
   P2_IN <= INST_DECODE;
+  P2_DATA_IN <= P1_OUT(31 downto 16);
 ---------------------------------------------------
   P2: DataRegister
       generic map (data_width => DecodeSize)
       port map (
         Din => P2_IN,
         Dout => P2_OUT,
+        Enable => '1',
+        clk => clk
+      );
+  P2_data: DataRegister
+      generic map(data_width => 16)
+      port map (
+        Din => P2_DATA_IN,
+        Dout => P2_DATA_OUT,
         Enable => '1',
         clk => clk
       );
@@ -174,6 +195,7 @@ begin
       );
 
   P3_IN <= P2_OUT;
+  P3_DATA_IN(47 downto 32) <= P2_DATA_OUT(15 downto 0);
   P3_DATA_IN(31 downto 16) <= DATA1;
   P3_DATA_IN(15 downto 0) <= DATA2;
 ----------------------------------------------------
@@ -186,7 +208,7 @@ begin
         clk => clk
       );
   P3_data: DataRegister
-      generic map(data_width => 32)
+      generic map(data_width => 48)
       port map (
         Din => P3_DATA_IN,
         Dout => P3_DATA_OUT,
@@ -209,7 +231,10 @@ begin
       );
 
   P4_IN <= P3_OUT;
+  P4_DATA_IN(31 downto 16) <= P3_DATA_OUT(47 downto 32);
   P4_DATA_IN(15 downto 0) <= ALU_OUT;
+  P4_FLAG_IN(1) <= ALU_carry;
+  P4_FLAG_IN(0) <= ALU_zero;
 ----------------------------------------------------
   P4: DataRegister
       generic map (data_width => DecodeSize)
@@ -220,10 +245,18 @@ begin
         clk => clk
       );
   P4_data: DataRegister
-      generic map(data_width => 16)
+      generic map(data_width => 32)
       port map (
         Din => P4_DATA_IN,
         Dout => P4_DATA_OUT,
+        Enable => '1',
+        clk => clk
+      );
+  P4_flag: DataRegister
+      generic map(data_width => 2)
+      port map (
+        Din => P4_FLAG_IN,
+        Dout => P4_FLAG_OUT,
         Enable => '1',
         clk => clk
       );
@@ -245,8 +278,11 @@ begin
       );
 
   P5_IN <= P4_OUT;
+  P5_DATA_IN(47 downto 32) <= P4_DATA_OUT(31 downto 16);
   P5_DATA_IN(31 downto 16) <= MEM_OUT;
   P5_DATA_IN(15 downto 0) <= P4_DATA_OUT(15 downto 0);
+  P5_FLAG_IN(1) <= P4_FLAG_OUT(1);
+  P5_FLAG_IN(0) <= P4_FLAG_OUT(0);
 ---------------------------------------------------
   P5: DataRegister
       generic map (data_width => DecodeSize)
@@ -257,22 +293,50 @@ begin
         clk => clk
       );
   P5_data: DataRegister
-      generic map(data_width => 32)
+      generic map(data_width => 48)
       port map (
         Din => P5_DATA_IN,
         Dout => P5_DATA_OUT,
         Enable => '1',
         clk => clk
       );
+  P5_flag: DataRegister
+      generic map(data_width => 2)
+      port map (
+        Din => P5_FLAG_IN,
+        Dout => P5_FLAG_OUT,
+        Enable => '1',
+        clk => clk
+      );
 
 ---------------------------------------------------
 ---------STAGE 6 - WRITE STAGE---------------------
-
 -- Refer to Register File defined in stage 3
-  R7_IN <= (others => '0');
+  R7_IN <= P5_DATA_OUT(47 downto 32);
+  R7_WRITE <= '1' when P5_OUT(14) = '0' else '0';
   REGDATA_IN <= P5_DATA_OUT(15 downto 0);
   reg_write <= P5_OUT(8);
   WRITE3 <= P5_OUT(13 downto 11);
+
+  CARRY_IN <= P5_FLAG_OUT(1 downto 1);
+  ZERO_IN <= P5_FLAG_OUT(0 downto 0);
+
+  CR: DataRegister
+      generic map (data_width => 1)
+      port map (
+        Din => CARRY_IN,
+        Dout => CARRY,
+        Enable => P5_OUT(9),
+        clk => clk
+      );
+  ZR: DataRegister
+      generic map (data_width => 1)
+      port map (
+        Din => ZERO_IN,
+        Dout => ZERO,
+        Enable => P5_OUT(10),
+        clk => clk
+      );
 
 
 end Mixed;
