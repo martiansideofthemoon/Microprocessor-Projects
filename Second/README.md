@@ -1,1 +1,1 @@
-Multi Cycle RISC Microprocessor - IITB RISC
+Multi Cycle Pipelined RISC Microprocessor - IITB RISC
