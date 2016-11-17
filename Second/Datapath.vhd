@@ -50,6 +50,7 @@ architecture Mixed of Datapath is
   signal DATA2: std_logic_vector(15 downto 0);
   signal SE6_OUT: std_logic_vector(15 downto 0);
   signal SE9_OUT: std_logic_vector(15 downto 0);
+  signal ZERO_PAD9: std_logic_vector(15 downto 0);
 ---------------------------------------------------
   signal P3_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P3_OUT: std_logic_vector(DecodeSize-1 downto 0);
@@ -210,12 +211,19 @@ begin
          input => P2_OUT(23 downto 15),
          output => SE9_OUT
        );
+  PAD: LSBZeroPad
+       port map (
+         input => P2_OUT(23 downto 15),
+         output => ZERO_PAD9
+       );
 
   P3_IN <= P2_OUT;
   P3_DATA_IN(47 downto 32) <= P2_DATA_OUT(15 downto 0);
-  P3_DATA_IN(31 downto 16) <= DATA1;
+  P3_DATA_IN(31 downto 16) <= DATA1 when P2_OUT(27 downto 26) = "00" else
+                              CONST_0;
   P3_DATA_IN(15 downto 0) <= SE6_OUT when P2_OUT(25 downto 24) = "01" else
                              DATA2 when P2_OUT(25 downto 24) = "00" else
+                             ZERO_PAD9 when P2_OUT(25 downto 24) = "10" else
                              CONST_0;
 ----------------------------------------------------
   P3: DataRegister
@@ -287,6 +295,7 @@ begin
 
 ---------------------------------------------------
 ---------STAGE 5 - MEMORY STAGE--------------------
+  ADDRESS_IN <= P4_DATA_OUT(15 downto 0);
   ME: Memory
       port map (
         clk => clk,
