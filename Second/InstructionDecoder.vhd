@@ -131,7 +131,7 @@ begin
       -- Signals for Register Read stage
       reg_A1 <= "000";
       reg_A2 <= "000";
-      alu2_select <= "01";
+      alu2_select <= "10";
       alu1_select <= "01";
       immediate <= instruction(8 downto 0);
       -- Signals for Execute stage
@@ -142,6 +142,23 @@ begin
       reg_write <= '1';
       set_carry <= '0';
       set_zero <= '0';
+      reg_A3 <= instruction(11 downto 9);
+    elsif (reset = '0' and op_code = "0100") then
+      -- Generic LW instruction
+      -- Signals for Register Read stage
+      reg_A1 <= instruction(8 downto 6);
+      reg_A2 <= "000";
+      alu2_select <= "01";
+      alu1_select <= "00";
+      immediate <= instruction(8 downto 0);
+      -- Signals for Execute stage
+      alu_op <= '0';
+      -- Signals for Memory stage
+      mem_write <= '0';
+      -- Signals for Register Write stage
+      reg_write <= '1';
+      set_carry <= '0';
+      set_zero <= '1';
       reg_A3 <= instruction(11 downto 9);
     else
       -- Signals for Register Read stage
