@@ -75,6 +75,20 @@ begin
       set_carry <= '1';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
+    elsif (op_code = "0010" and carry_logic = "00") then
+      -- Generic NDU type instruction
+      -- Signals for Register Read stage
+      reg_A1 <= instruction(11 downto 9);
+      reg_A2 <= instruction(8 downto 6);
+      -- Signals for Execute stage
+      alu_op <= '1';
+      -- Signals for Memory stage
+      mem_write <= '0';
+      -- Signals for Register Write stage
+      reg_write <= '1';
+      set_carry <= '0';
+      set_zero <= '1';
+      reg_A3 <= instruction(5 downto 3);
     else
       -- Signals for Register Read stage
       reg_A1 <= "000";
