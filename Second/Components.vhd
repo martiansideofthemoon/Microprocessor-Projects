@@ -93,14 +93,12 @@ package ProcessorComponents is
   );
   end component LeftShift;
 
-  component ActiveDecoder is
+  component Increment is
   port (
-    instruction: in std_logic_vector(1 downto 0);
-    carry: in std_logic;
-    zero: in std_logic;
-    active: out std_logic
+    input: in std_logic_vector(15 downto 0);
+    output: out std_logic_vector(15 downto 0)
   );
-  end component ActiveDecoder;
+  end component Increment;
 
  component RegisterFile is
   port (
@@ -148,77 +146,15 @@ package ProcessorComponents is
   component InstructionDecoder is
   port (
     instruction: in std_logic_vector(15 downto 0);
-    output: out OperationCode;
-    alu_op: out std_logic;
-    alu_carry: out std_logic;
-    alu_zero: out std_logic;
-    pc_updated: out std_logic
+    output: out std_logic_vector(11 downto 0)
   );
-  end component InstructionDecoder;
+  end component;
 
   component Datapath is
   port (
-    -- Instruction Register write
-    inst_write: in std_logic;
-
-    -- Program counter write / select
-    pc_write: in std_logic;
-    pc_in_select: in std_logic_vector(2 downto 0);
-
-    -- Select the two ALU inputs / op_code
-    alu_op: in std_logic;
-    alu_op_select: in std_logic;
-    alu1_select: in std_logic_vector(2 downto 0);
-    alu2_select: in std_logic_vector(2 downto 0);
-    alureg_write: in std_logic;
-
-    -- Select the correct inputs to memory
-    addr_select: in std_logic_vector(1 downto 0);
-    mem_write: in std_logic;
-    memreg_write: in std_logic;
-
-    -- Choices for Register file
-    regread2_select: in std_logic;
-    regdata_select: in std_logic_vector(1 downto 0);
-    regwrite_select: in std_logic_vector(1 downto 0);
-    reg_write: in std_logic;
-    t1_write, t2_write: in std_logic;
-
-    -- Control signals which decide whether or not to set carry flag
-    set_carry, set_zero: in std_logic;
-    carry_enable_select, zero_enable_select: in std_logic;
-
-    -- Choice between input register and feedback
-    pl_select: in std_logic;
-
-    -- Active signal, if high ADC / ADZ / NDC / NDZ executed
-    active: out std_logic;
-
-    -- Returns whether priority loop input is zero or not
-    plinput_zero: out std_logic;
-
-    -- Used to transition from S2
-    inst_type: out OperationCode;
-
-    -- choice for input into zero flag
-    zero_select: in std_logic;
-
-    -- zero flag which is useful for BEQ control
-    zero_flag: out std_logic;
-
-    -- Tells you whether PC will be updated in this instruction
-    pc_updated: out std_logic;
-
-    -- clock and reset pins, if reset is high, external memory signals
-    -- active.
     clk, reset: in std_logic;
 
     -- Data coming from outside
-    external_addr: in std_logic_vector(15 downto 0);
-    external_data: in std_logic_vector(15 downto 0);
-    external_mem_write: in std_logic;
-    external_pc_out: out std_logic_vector(15 downto 0);
-    external_ir: out std_logic_vector(15 downto 0);
     external_r0: out std_logic_vector(15 downto 0);
     external_r1: out std_logic_vector(15 downto 0);
     external_r2: out std_logic_vector(15 downto 0);
@@ -227,84 +163,6 @@ package ProcessorComponents is
     external_r5: out std_logic_vector(15 downto 0);
     external_r6: out std_logic_vector(15 downto 0)
   );
-  end component;
-
-  component Controller is
-  port (
-    -- Instruction Register write
-    inst_write: out std_logic;
-
-    -- Program counter write / select
-    pc_write: out std_logic;
-    pc_in_select: out std_logic_vector(2 downto 0);
-
-    -- Select the two ALU inputs / op_code
-    alu_op: out std_logic;
-    alu_op_select: out std_logic;
-    alu1_select: out std_logic_vector(2 downto 0);
-    alu2_select: out std_logic_vector(2 downto 0);
-    alureg_write: out std_logic;
-
-    -- Select the correct inputs to memory
-    addr_select: out std_logic_vector(1 downto 0);
-    mem_write: out std_logic;
-    memreg_write: out std_logic;
-
-    -- Choices for Register file
-    regread2_select: out std_logic;
-    regdata_select: out std_logic_vector(1 downto 0);
-    regwrite_select: out std_logic_vector(1 downto 0);
-    reg_write: out std_logic;
-    t1_write, t2_write: out std_logic;
-
-    -- Control signals which decide whether or not to set carry flag
-    set_carry, set_zero: out std_logic;
-    carry_enable_select, zero_enable_select: out std_logic;
-
-    -- Choice between input register and feedback
-    pl_select: out std_logic;
-
-    -- Active signal, if high ADC / ADZ / NDC / NDZ executed
-    active: in std_logic;
-
-    -- Returns whether priority loop input is zero or not
-    plinput_zero: in std_logic;
-
-    -- Used to transition from S2
-    inst_type: in OperationCode;
-
-    -- choice for input into zero flag
-    zero_select: out std_logic;
-
-    -- zero flag which is useful for BEQ control
-    zero_flag: in std_logic;
-
-    -- Tells you whether PC will be updated in this instruction
-    pc_updated: in std_logic;
-
-    -- clock and reset pins, if reset is high, external memory signals
-    -- active.
-    clk, reset: in std_logic
-  );
-  end component;
-
-  component TopLevel is
-    port (
-      clk, reset: in std_logic;
-      -- Data coming from outside
-      --external_addr: in std_logic_vector(15 downto 0);
-      --external_data: in std_logic_vector(15 downto 0);
-      --external_mem_write: in std_logic;
-      external_pc_out: out std_logic_vector(15 downto 0);
-      external_ir: out std_logic_vector(15 downto 0);
-      external_r0: out std_logic_vector(15 downto 0);
-      --external_r1: out std_logic_vector(15 downto 0);
-      --external_r2: out std_logic_vector(15 downto 0);
-      external_r3: out std_logic_vector(15 downto 0);
-      external_r4: out std_logic_vector(15 downto 0);
-      external_r5: out std_logic_vector(15 downto 0);
-      external_r6: out std_logic_vector(15 downto 0)
-    );
   end component;
 
 end package;
@@ -412,4 +270,18 @@ end entity TwosComplement;
 architecture Behave of TwosComplement is
 begin
 output <= std_logic_vector(unsigned(not input) + 1);
+end Behave;
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+entity Increment is
+port (
+  input: in std_logic_vector(15 downto 0);
+  output: out std_logic_vector(15 downto 0)
+);
+end entity Increment;
+architecture Behave of Increment is
+begin
+output <= std_logic_vector(unsigned(input) + 1);
 end Behave;
