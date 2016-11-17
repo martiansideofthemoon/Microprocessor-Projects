@@ -28,6 +28,8 @@ signal alu2_select: std_logic_vector(1 downto 0);
 signal alu1_select: std_logic_vector(1 downto 0);
 signal immediate: std_logic_vector(8 downto 0);
 signal reg_write_select: std_logic_vector(1 downto 0);
+signal carry_check: std_logic;
+signal zero_check: std_logic;
 begin
   op_code <= instruction(15 downto 12);
   carry_logic <= instruction(1 downto 0);
@@ -47,6 +49,8 @@ begin
   output(27 downto 26) <= alu1_select;
   output(31 downto 28) <= op_code;
   output(33 downto 32) <= reg_write_select;
+  output(34) <= carry_check;
+  output(35) <= zero_check;
 
 
   process(instruction, op_code, carry_logic)
@@ -83,6 +87,48 @@ begin
       -- Signals for Register Read stage
       reg_A1 <= instruction(11 downto 9);
       reg_A2 <= instruction(8 downto 6);
+      carry_check <= '0';
+      zero_check <= '0';
+      alu2_select <= "00";
+      alu1_select <= "00";
+      immediate <= (others => '0');
+      -- Signals for Execute stage
+      alu_op <= '0';
+      -- Signals for Memory stage
+      mem_write <= '0';
+      -- Signals for Register Write stage
+      reg_write <= '1';
+      reg_write_select <= "00";
+      set_carry <= '1';
+      set_zero <= '1';
+      reg_A3 <= instruction(5 downto 3);
+    elsif (reset = '0' and op_code = "0000" and carry_logic = "10") then
+      -- Generic ADC type instruction
+      -- Signals for Register Read stage
+      reg_A1 <= instruction(11 downto 9);
+      reg_A2 <= instruction(8 downto 6);
+      carry_check <= '1';
+      zero_check <= '0';
+      alu2_select <= "00";
+      alu1_select <= "00";
+      immediate <= (others => '0');
+      -- Signals for Execute stage
+      alu_op <= '0';
+      -- Signals for Memory stage
+      mem_write <= '0';
+      -- Signals for Register Write stage
+      reg_write <= '1';
+      reg_write_select <= "00";
+      set_carry <= '1';
+      set_zero <= '1';
+      reg_A3 <= instruction(5 downto 3);
+    elsif (reset = '0' and op_code = "0000" and carry_logic = "01") then
+      -- Generic ADZ type instruction
+      -- Signals for Register Read stage
+      reg_A1 <= instruction(11 downto 9);
+      reg_A2 <= instruction(8 downto 6);
+      carry_check <= '0';
+      zero_check <= '1';
       alu2_select <= "00";
       alu1_select <= "00";
       immediate <= (others => '0');
@@ -101,6 +147,8 @@ begin
       -- Signals for Register Read stage
       reg_A1 <= instruction(11 downto 9);
       reg_A2 <= instruction(8 downto 6);
+      carry_check <= '0';
+      zero_check <= '0';
       alu2_select <= "00";
       alu1_select <= "00";
       immediate <= (others => '0');
@@ -119,6 +167,8 @@ begin
       -- Signals for Register Read stage
       reg_A1 <= instruction(11 downto 9);
       reg_A2 <= "000";
+      carry_check <= '0';
+      zero_check <= '0';
       alu2_select <= "01";
       alu1_select <= "00";
       immediate <= instruction(8 downto 0);
@@ -137,6 +187,8 @@ begin
       -- Signals for Register Read stage
       reg_A1 <= "000";
       reg_A2 <= "000";
+      carry_check <= '0';
+      zero_check <= '0';
       alu2_select <= "10";
       alu1_select <= "01";
       immediate <= instruction(8 downto 0);
@@ -155,6 +207,8 @@ begin
       -- Signals for Register Read stage
       reg_A1 <= instruction(8 downto 6);
       reg_A2 <= "000";
+      carry_check <= '0';
+      zero_check <= '0';
       alu2_select <= "01";
       alu1_select <= "00";
       immediate <= instruction(8 downto 0);
@@ -173,6 +227,8 @@ begin
       -- Signals for Register Read stage
       reg_A1 <= instruction(8 downto 6);
       reg_A2 <= instruction(11 downto 9);
+      carry_check <= '0';
+      zero_check <= '0';
       alu2_select <= "01";
       alu1_select <= "00";
       immediate <= instruction(8 downto 0);
@@ -190,6 +246,8 @@ begin
       -- Signals for Register Read stage
       reg_A1 <= "000";
       reg_A2 <= "000";
+      carry_check <= '0';
+      zero_check <= '0';
       alu2_select <= "00";
       alu1_select <= "00";
       immediate <= (others => '0');

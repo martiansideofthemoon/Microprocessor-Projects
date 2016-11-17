@@ -5,7 +5,7 @@ use ieee.std_logic_1164.all;
 package ProcessorComponents is
 
   type OperationCode is (NONE, R_TYPE, LW, SW, ADI, LHI, LM, SM, BEQ, JAL, JLR);
-  constant DecodeSize: Integer := 34;
+  constant DecodeSize: Integer := 36;
 
   component ClockDivider is
   port (
@@ -27,6 +27,12 @@ package ProcessorComponents is
     S: out std_logic;
     clk, reset: in std_logic
   );
+  end component;
+
+  component KillInstruction is
+  port (Decode_in: in std_logic_vector(DecodeSize-1 downto 0);
+        Decode_out: out std_logic_vector(DecodeSize-1 downto 0)
+        );
   end component;
 
   component DataRegister is
@@ -293,6 +299,25 @@ end entity TwosComplement;
 architecture Behave of TwosComplement is
 begin
 output <= std_logic_vector(unsigned(not input) + 1);
+end Behave;
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+library work;
+use work.ProcessorComponents.all;
+entity KillInstruction is
+port (
+  Decode_in: in std_logic_vector(DecodeSize-1 downto 0);
+  Decode_out: out std_logic_vector(DecodeSize-1 downto 0)
+);
+end entity KillInstruction;
+architecture Behave of KillInstruction is
+begin
+-- Bit 14 set to one as we want R7_write
+Decode_out <= (14 => '1', others => '0');
+
 end Behave;
 
 library ieee;

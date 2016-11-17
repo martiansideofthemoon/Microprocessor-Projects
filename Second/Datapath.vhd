@@ -75,6 +75,7 @@ architecture Mixed of Datapath is
   signal P4_DATA_OUT: std_logic_vector(31 downto 0);
   signal P4_FLAG_IN: std_logic_vector(1 downto 0);
   signal P4_FLAG_OUT: std_logic_vector(1 downto 0);
+  signal P4_kill: std_logic_vector(DecodeSize-1 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 5 - MEMORY STAGE--------------------
@@ -263,7 +264,6 @@ begin
         carry => ALU_carry,
         zero => ALU_zero
       );
-
   FF: FlagForwarding
       port map (
         set_carry5 => P4_OUT(9),
@@ -280,8 +280,14 @@ begin
         zero_val => zero_forward_val,
         reset => reset
       );
-
-  P4_IN <= P3_OUT;
+  Kill: KillInstruction
+      port map (
+        Decode_in => P3_OUT,
+        Decode_out => P4_kill
+        );
+  P4_IN <= P4_kill when P3_OUT(28) = '1' and CARRY(0) = '0' else
+           P4_kill when P3_OUT(29) = '1' and ZERO(0) = '0' else
+           P3_OUT;
   P4_DATA_IN(31 downto 16) <= P3_DATA_OUT(47 downto 32);
   P4_DATA_IN(15 downto 0) <= ALU_OUT;
   P4_FLAG_IN(1) <= ALU_carry;
