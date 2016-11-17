@@ -36,7 +36,7 @@ begin
   output(13 downto 11) <= reg_A3;
   output(14) <= pc_updated;
 
-  process(instruction, op_code)
+  process(instruction, op_code, carry_logic)
     variable npc_updated: std_logic := '0';
   begin
     if (op_code = "0000" and instruction(5 downto 3) = "111") then
@@ -59,7 +59,7 @@ begin
     pc_updated <= npc_updated;
   end process;
 
-  process(op_code, carry_logic)
+  process(instruction, op_code, carry_logic)
   begin
     if (op_code = "0000" and carry_logic = "00") then
       -- Generic ADD type instruction
