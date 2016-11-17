@@ -107,7 +107,8 @@ begin
         Din => PC_IN,
         Dout => PC_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
   INC: Increment
        port map (
@@ -139,7 +140,8 @@ begin
         Din => P1_IN,
         Dout => P1_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
 
 ---------------------------------------------------
@@ -158,7 +160,8 @@ begin
         Din => P2_IN,
         Dout => P2_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
   P2_data: DataRegister
       generic map(data_width => 16)
@@ -166,7 +169,8 @@ begin
         Din => P2_DATA_IN,
         Dout => P2_DATA_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
 
 ---------------------------------------------------
@@ -205,7 +209,8 @@ begin
         Din => P3_IN,
         Dout => P3_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
   P3_data: DataRegister
       generic map(data_width => 48)
@@ -213,7 +218,8 @@ begin
         Din => P3_DATA_IN,
         Dout => P3_DATA_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
 
 ---------------------------------------------------
@@ -242,7 +248,8 @@ begin
         Din => P4_IN,
         Dout => P4_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
   P4_data: DataRegister
       generic map(data_width => 32)
@@ -250,7 +257,8 @@ begin
         Din => P4_DATA_IN,
         Dout => P4_DATA_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
   P4_flag: DataRegister
       generic map(data_width => 2)
@@ -258,7 +266,8 @@ begin
         Din => P4_FLAG_IN,
         Dout => P4_FLAG_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
 
 ---------------------------------------------------
@@ -290,7 +299,8 @@ begin
         Din => P5_IN,
         Dout => P5_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
   P5_data: DataRegister
       generic map(data_width => 48)
@@ -298,7 +308,8 @@ begin
         Din => P5_DATA_IN,
         Dout => P5_DATA_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
   P5_flag: DataRegister
       generic map(data_width => 2)
@@ -306,14 +317,15 @@ begin
         Din => P5_FLAG_IN,
         Dout => P5_FLAG_OUT,
         Enable => '1',
-        clk => clk
+        clk => clk,
+        reset => reset
       );
 
 ---------------------------------------------------
 ---------STAGE 6 - WRITE STAGE---------------------
 -- Refer to Register File defined in stage 3
   R7_IN <= P5_DATA_OUT(47 downto 32);
-  R7_WRITE <= '1' when P5_OUT(14) = '0' else '0';
+  R7_WRITE <= '1' when P5_OUT(14) = '1' else '0';
   REGDATA_IN <= P5_DATA_OUT(15 downto 0);
   reg_write <= P5_OUT(8);
   WRITE3 <= P5_OUT(13 downto 11);
@@ -327,7 +339,8 @@ begin
         Din => CARRY_IN,
         Dout => CARRY,
         Enable => P5_OUT(9),
-        clk => clk
+        clk => clk,
+        reset => reset
       );
   ZR: DataRegister
       generic map (data_width => 1)
@@ -335,7 +348,8 @@ begin
         Din => ZERO_IN,
         Dout => ZERO,
         Enable => P5_OUT(10),
-        clk => clk
+        clk => clk,
+        reset => reset
       );
 
 

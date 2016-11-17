@@ -22,6 +22,7 @@ signal set_carry: std_logic;
 signal set_zero: std_logic;
 signal reg_A3: std_logic_vector(2 downto 0);
 signal pc_updated: std_logic;
+signal r7_increment: std_logic;
 begin
   op_code <= instruction(15 downto 12);
   carry_logic <= instruction(1 downto 0);
@@ -34,7 +35,8 @@ begin
   output(9) <= set_carry;
   output(10) <= set_zero;
   output(13 downto 11) <= reg_A3;
-  output(14) <= pc_updated;
+  r7_increment <= not pc_updated;
+  output(14) <= r7_increment;
 
   process(instruction, op_code, carry_logic)
     variable npc_updated: std_logic := '0';

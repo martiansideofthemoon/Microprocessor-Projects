@@ -33,7 +33,7 @@ package ProcessorComponents is
   generic (data_width:integer);
   port (Din: in std_logic_vector(data_width-1 downto 0);
         Dout: out std_logic_vector(data_width-1 downto 0);
-        clk, enable: in std_logic);
+        clk, enable, reset: in std_logic);
   end component DataRegister;
 
   component PriorityEncoder is
@@ -174,12 +174,15 @@ entity DataRegister is
   generic (data_width:integer);
   port (Din: in std_logic_vector(data_width-1 downto 0);
         Dout: out std_logic_vector(data_width-1 downto 0);
-        clk, enable: in std_logic);
+        clk, enable, reset: in std_logic);
 end entity;
 architecture Behave of DataRegister is
 begin
   process(clk)
   begin
+    if (reset = '1') then
+      Dout <= (others => '0');
+    end if;
     if(clk'event and (clk  = '1')) then
       if(enable = '1') then
         Dout <= Din;
