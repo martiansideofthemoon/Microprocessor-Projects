@@ -5,7 +5,8 @@ use work.ProcessorComponents.all;
 entity InstructionDecoder is
   port (
     instruction: in std_logic_vector(15 downto 0);
-    output: out std_logic_vector(DecodeSize-1 downto 0)
+    output: out std_logic_vector(DecodeSize-1 downto 0);
+    reset: in std_logic
   );
 end entity InstructionDecoder;
 
@@ -23,6 +24,8 @@ signal set_zero: std_logic;
 signal reg_A3: std_logic_vector(2 downto 0);
 signal pc_updated: std_logic;
 signal r7_increment: std_logic;
+signal alu2_select: std_logic_vector(1 downto 0);
+signal immediate: std_logic_vector(8 downto 0);
 begin
   op_code <= instruction(15 downto 12);
   carry_logic <= instruction(1 downto 0);
@@ -37,6 +40,8 @@ begin
   output(13 downto 11) <= reg_A3;
   r7_increment <= not pc_updated;
   output(14) <= r7_increment;
+  output(23 downto 15) <= immediate;
+  output(25 downto 24) <= alu2_select;
 
   process(instruction, op_code, carry_logic)
     variable npc_updated: std_logic := '0';
@@ -58,16 +63,22 @@ begin
     else
       npc_updated := '0';
     end if;
-    pc_updated <= npc_updated;
+    if (reset = '1') then
+      pc_updated <= '1';
+    else
+      pc_updated <= npc_updated;
+    end if;
   end process;
 
-  process(instruction, op_code, carry_logic)
+  process(reset, instruction, op_code, carry_logic)
   begin
-    if (op_code = "0000" and carry_logic = "00") then
+    if (reset = '0' and op_code = "0000" and carry_logic = "00") then
       -- Generic ADD type instruction
       -- Signals for Register Read stage
       reg_A1 <= instruction(11 downto 9);
       reg_A2 <= instruction(8 downto 6);
+      alu2_select <= "00";
+      immediate <= (others => '0');
       -- Signals for Execute stage
       alu_op <= '0';
       -- Signals for Memory stage
@@ -77,11 +88,13 @@ begin
       set_carry <= '1';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
-    elsif (op_code = "0010" and carry_logic = "00") then
+    elsif (reset = '0' and op_code = "0010" and carry_logic = "00") then
       -- Generic NDU type instruction
       -- Signals for Register Read stage
       reg_A1 <= instruction(11 downto 9);
       reg_A2 <= instruction(8 downto 6);
+      alu2_select <= "00";
+      immediate <= (others => '0');
       -- Signals for Execute stage
       alu_op <= '1';
       -- Signals for Memory stage
@@ -91,10 +104,28 @@ begin
       set_carry <= '0';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
+    elsif (reset = '0' and op_code = "0001") then
+      -- Generic ADI instruction
+      -- Signals for Register Read stage
+      reg_A1 <= instruction(11 downto 9);
+      reg_A2 <= "000";
+      alu2_select <= "01";
+      immediate <= instruction(8 downto 0);
+      -- Signals for Execute stage
+      alu_op <= '0';
+      -- Signals for Memory stage
+      mem_write <= '0';
+      -- Signals for Register Write stage
+      reg_write <= '1';
+      set_carry <= '1';
+      set_zero <= '1';
+      reg_A3 <= instruction(8 downto 6);
     else
       -- Signals for Register Read stage
       reg_A1 <= "000";
       reg_A2 <= "000";
+      alu2_select <= "00";
+      immediate <= (others => '0');
       -- Signals for Execute stage
       alu_op <= '0';
       -- Signals for Memory stage

@@ -48,6 +48,8 @@ architecture Mixed of Datapath is
 ---------STAGE 3 - REGISTER READ-------------------
   signal DATA1: std_logic_vector(15 downto 0);
   signal DATA2: std_logic_vector(15 downto 0);
+  signal SE6_OUT: std_logic_vector(15 downto 0);
+  signal SE9_OUT: std_logic_vector(15 downto 0);
 ---------------------------------------------------
   signal P3_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P3_OUT: std_logic_vector(DecodeSize-1 downto 0);
@@ -131,7 +133,7 @@ begin
 
   PC_IN <= PC_INCREMENT when reset = '0' else (others => '0');
 
-  P1_IN(15 downto 0) <= INST_MEMORY;
+  P1_IN(15 downto 0) <= INST_MEMORY when reset = '0' else (others => '1');
   P1_IN(31 downto 16) <= PC_IN;
 ----------------------------------------------------
   P1: DataRegister
@@ -149,7 +151,8 @@ begin
   ID: InstructionDecoder
       port map (
         instruction => P1_OUT(15 downto 0),
-        output => INST_DECODE
+        output => INST_DECODE,
+        reset => reset
       );
   P2_IN <= INST_DECODE;
   P2_DATA_IN <= P1_OUT(31 downto 16);
@@ -197,11 +200,23 @@ begin
         external_r5 => external_r5,
         external_r6 => external_r6
       );
+  SE: SignExtender6
+      port map (
+        input => P2_OUT(20 downto 15),
+        output => SE6_OUT
+      );
+  SE9: SignExtender9
+       port map (
+         input => P2_OUT(23 downto 15),
+         output => SE9_OUT
+       );
 
   P3_IN <= P2_OUT;
   P3_DATA_IN(47 downto 32) <= P2_DATA_OUT(15 downto 0);
   P3_DATA_IN(31 downto 16) <= DATA1;
-  P3_DATA_IN(15 downto 0) <= DATA2;
+  P3_DATA_IN(15 downto 0) <= SE6_OUT when P2_OUT(25 downto 24) = "01" else
+                             DATA2 when P2_OUT(25 downto 24) = "00" else
+                             CONST_0;
 ----------------------------------------------------
   P3: DataRegister
       generic map (data_width => DecodeSize)
