@@ -70,6 +70,8 @@ begin
       npc_updated := '1';
     elsif (op_code = "1100" or op_code = "1000" or op_code = "1001") then
       npc_updated := '1';
+    elsif (op_code = "1111") then
+      npc_updated := '1';
     else
       npc_updated := '0';
     end if;
@@ -149,6 +151,46 @@ begin
       reg_A2 <= instruction(8 downto 6);
       carry_check <= '0';
       zero_check <= '0';
+      alu2_select <= "00";
+      alu1_select <= "00";
+      immediate <= (others => '0');
+      -- Signals for Execute stage
+      alu_op <= '1';
+      -- Signals for Memory stage
+      mem_write <= '0';
+      -- Signals for Register Write stage
+      reg_write <= '1';
+      reg_write_select <= "00";
+      set_carry <= '0';
+      set_zero <= '1';
+      reg_A3 <= instruction(5 downto 3);
+    elsif (reset = '0' and op_code = "0010" and carry_logic = "10") then
+      -- Generic NDC type instruction
+      -- Signals for Register Read stage
+      reg_A1 <= instruction(11 downto 9);
+      reg_A2 <= instruction(8 downto 6);
+      carry_check <= '1';
+      zero_check <= '0';
+      alu2_select <= "00";
+      alu1_select <= "00";
+      immediate <= (others => '0');
+      -- Signals for Execute stage
+      alu_op <= '1';
+      -- Signals for Memory stage
+      mem_write <= '0';
+      -- Signals for Register Write stage
+      reg_write <= '1';
+      reg_write_select <= "00";
+      set_carry <= '0';
+      set_zero <= '1';
+      reg_A3 <= instruction(5 downto 3);
+    elsif (reset = '0' and op_code = "0010" and carry_logic = "01") then
+      -- Generic NDZ type instruction
+      -- Signals for Register Read stage
+      reg_A1 <= instruction(11 downto 9);
+      reg_A2 <= instruction(8 downto 6);
+      carry_check <= '0';
+      zero_check <= '1';
       alu2_select <= "00";
       alu1_select <= "00";
       immediate <= (others => '0');
