@@ -64,6 +64,10 @@ architecture Mixed of Datapath is
   signal ALU_OUT: std_logic_vector(15 downto 0);
   signal ALU_carry: std_logic;
   signal ALU_zero: std_logic;
+  signal carry_forward: std_logic;
+  signal carry_forward_val: std_logic;
+  signal zero_forward: std_logic;
+  signal zero_forward_val: std_logic;
 ---------------------------------------------------
   signal P4_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P4_OUT: std_logic_vector(DecodeSize-1 downto 0);
@@ -258,6 +262,23 @@ begin
         alu_out => ALU_OUT,
         carry => ALU_carry,
         zero => ALU_zero
+      );
+
+  FF: FlagForwarding
+      port map (
+        set_carry5 => P4_OUT(9),
+        set_zero5 => P4_OUT(10),
+        carry5 => P4_FLAG_OUT(1),
+        zero5 => P4_FLAG_OUT(0),
+        set_carry6 => P5_OUT(9),
+        set_zero6 => P5_OUT(10),
+        carry6 => P5_FLAG_OUT(1),
+        zero6 => P5_FLAG_OUT(0),
+        carry_forward => carry_forward,
+        zero_forward => zero_forward,
+        carry_val => carry_forward_val,
+        zero_val => zero_forward_val,
+        reset => reset
       );
 
   P4_IN <= P3_OUT;

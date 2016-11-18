@@ -12,11 +12,11 @@ entity FlagForwarding is
     set_zero6: in std_logic;
     carry6: in std_logic;
     zero6: in std_logic;
-    reset: in std_logic;
     carry_forward: out std_logic;
     zero_forward: out std_logic;
     carry_val: out std_logic;
-    zero_val: out std_logic
+    zero_val: out std_logic;
+    reset: in std_logic
   );
 end entity FlagForwarding;
 

@@ -167,6 +167,24 @@ package ProcessorComponents is
   );
   end component;
 
+  component FlagForwarding is
+  port (
+    set_carry5: in std_logic;
+    set_zero5: in std_logic;
+    carry5: in std_logic;
+    zero5: in std_logic;
+    set_carry6: in std_logic;
+    set_zero6: in std_logic;
+    carry6: in std_logic;
+    zero6: in std_logic;
+    carry_forward: out std_logic;
+    zero_forward: out std_logic;
+    carry_val: out std_logic;
+    zero_val: out std_logic;
+    reset: in std_logic
+  );
+end component FlagForwarding;
+
 end package;
 
 library ieee;
