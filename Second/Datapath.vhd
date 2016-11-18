@@ -78,6 +78,7 @@ architecture Mixed of Datapath is
   signal LSHIFT_ADDRESS_IN: std_logic_vector(15 downto 0);
   signal MEMDATA_IN: std_logic_vector(15 downto 0);
   signal MEM_OUT: std_logic_vector(15 downto 0);
+  signal mem_load_zero: std_logic;
 ---------------------------------------------------
   signal P5_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P5_OUT: std_logic_vector(DecodeSize-1 downto 0);
@@ -309,13 +310,14 @@ begin
         input => ADDRESS_IN,
         output => LSHIFT_ADDRESS_IN
       );
+  mem_load_zero <= '1' when MEM_OUT = "0000000000000000" else '0';
 
   P5_IN <= P4_OUT;
   P5_DATA_IN(47 downto 32) <= P4_DATA_OUT(31 downto 16);
   P5_DATA_IN(31 downto 16) <= MEM_OUT;
   P5_DATA_IN(15 downto 0) <= P4_DATA_OUT(15 downto 0);
   P5_FLAG_IN(1) <= P4_FLAG_OUT(1);
-  P5_FLAG_IN(0) <= P4_FLAG_OUT(0);
+  P5_FLAG_IN(0) <= mem_load_zero when P4_OUT(31 downto 28) = "0100" else P4_FLAG_OUT(0);
 ---------------------------------------------------
   P5: DataRegister
       generic map (data_width => DecodeSize)
@@ -350,7 +352,8 @@ begin
 -- Refer to Register File defined in stage 3
   R7_IN <= P5_DATA_OUT(47 downto 32);
   R7_WRITE <= '1' when P5_OUT(14) = '1' else '0';
-  REGDATA_IN <= P5_DATA_OUT(15 downto 0);
+  REGDATA_IN <= P5_DATA_OUT(15 downto 0) when P5_OUT(33 downto 32) = "00" else
+                P5_DATA_OUT(31 downto 16);
   reg_write <= P5_OUT(8);
   WRITE3 <= P5_OUT(13 downto 11);
 

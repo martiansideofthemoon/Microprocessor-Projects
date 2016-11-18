@@ -27,6 +27,7 @@ signal r7_increment: std_logic;
 signal alu2_select: std_logic_vector(1 downto 0);
 signal alu1_select: std_logic_vector(1 downto 0);
 signal immediate: std_logic_vector(8 downto 0);
+signal reg_write_select: std_logic_vector(1 downto 0);
 begin
   op_code <= instruction(15 downto 12);
   carry_logic <= instruction(1 downto 0);
@@ -44,6 +45,8 @@ begin
   output(23 downto 15) <= immediate;
   output(25 downto 24) <= alu2_select;
   output(27 downto 26) <= alu1_select;
+  output(31 downto 28) <= op_code;
+  output(33 downto 32) <= reg_write_select;
 
 
   process(instruction, op_code, carry_logic)
@@ -89,6 +92,7 @@ begin
       mem_write <= '0';
       -- Signals for Register Write stage
       reg_write <= '1';
+      reg_write_select <= "00";
       set_carry <= '1';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
@@ -106,6 +110,7 @@ begin
       mem_write <= '0';
       -- Signals for Register Write stage
       reg_write <= '1';
+      reg_write_select <= "00";
       set_carry <= '0';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
@@ -123,6 +128,7 @@ begin
       mem_write <= '0';
       -- Signals for Register Write stage
       reg_write <= '1';
+      reg_write_select <= "00";
       set_carry <= '1';
       set_zero <= '1';
       reg_A3 <= instruction(8 downto 6);
@@ -140,6 +146,7 @@ begin
       mem_write <= '0';
       -- Signals for Register Write stage
       reg_write <= '1';
+      reg_write_select <= "00";
       set_carry <= '0';
       set_zero <= '0';
       reg_A3 <= instruction(11 downto 9);
@@ -157,8 +164,27 @@ begin
       mem_write <= '0';
       -- Signals for Register Write stage
       reg_write <= '1';
+      reg_write_select <= "01";
       set_carry <= '0';
       set_zero <= '1';
+      reg_A3 <= instruction(11 downto 9);
+    elsif (reset = '0' and op_code = "0101") then
+      -- Generic SW instruction
+      -- Signals for Register Read stage
+      reg_A1 <= instruction(8 downto 6);
+      reg_A2 <= instruction(11 downto 9);
+      alu2_select <= "01";
+      alu1_select <= "00";
+      immediate <= instruction(8 downto 0);
+      -- Signals for Execute stage
+      alu_op <= '0';
+      -- Signals for Memory stage
+      mem_write <= '1';
+      -- Signals for Register Write stage
+      reg_write <= '0';
+      reg_write_select <= "00";
+      set_carry <= '0';
+      set_zero <= '0';
       reg_A3 <= instruction(11 downto 9);
     else
       -- Signals for Register Read stage
@@ -173,6 +199,7 @@ begin
       mem_write <= '0';
       -- Signals for Register Write stage
       reg_write <= '0';
+      reg_write_select <= "00";
       set_carry <= '0';
       set_zero <= '0';
       reg_A3 <= "000";
