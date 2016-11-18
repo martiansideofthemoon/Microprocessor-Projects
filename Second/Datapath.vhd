@@ -31,6 +31,8 @@ architecture Mixed of Datapath is
   signal PC_OUT: std_logic_vector(15 downto 0);
   signal PC_INCREMENT: std_logic_vector(15 downto 0);
   signal INST_MEMORY: std_logic_vector(15 downto 0);
+  signal pc_enable: std_logic;
+  signal p1_enable: std_logic;
 ---------------------------------------------------
   signal P1_IN: std_logic_vector(31 downto 0);
   signal P1_OUT: std_logic_vector(31 downto 0);
@@ -38,6 +40,7 @@ architecture Mixed of Datapath is
 ---------------------------------------------------
 ---------STAGE 2 - INSTRUCTION DECODE--------------
   signal INST_DECODE: std_logic_vector(DecodeSize-1 downto 0) := (others => '0');
+  signal pl_input_zero: std_logic;
 ---------------------------------------------------
   signal P2_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P2_OUT: std_logic_vector(DecodeSize-1 downto 0);
@@ -117,7 +120,7 @@ begin
       port map (
         Din => PC_IN,
         Dout => PC_OUT,
-        Enable => '1',
+        Enable => pc_enable,
         clk => clk,
         reset => reset
       );
@@ -150,7 +153,7 @@ begin
       port map (
         Din => P1_IN,
         Dout => P1_OUT,
-        Enable => '1',
+        Enable => p1_enable,
         clk => clk,
         reset => reset
       );
@@ -161,6 +164,14 @@ begin
       port map (
         instruction => P1_OUT(15 downto 0),
         output => INST_DECODE,
+        reset => reset
+      );
+  RC: RegisterControl
+      port map (
+        instruction => P1_OUT(15 downto 0),
+        pl_input_zero => pl_input_zero,
+        pc_enable => pc_enable,
+        p1_enable => p1_enable,
         reset => reset
       );
   P2_IN <= INST_DECODE;

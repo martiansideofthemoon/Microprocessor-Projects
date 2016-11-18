@@ -191,7 +191,17 @@ package ProcessorComponents is
     zero_val: out std_logic;
     reset: in std_logic
   );
-end component FlagForwarding;
+  end component FlagForwarding;
+
+  component RegisterControl is
+    port (
+      instruction: in std_logic_vector(15 downto 0);
+      pl_input_zero: in std_logic;
+      pc_enable: out std_logic;
+      p1_enable: out std_logic;
+      reset: in std_logic
+    );
+  end component RegisterControl;
 
 end package;
 
