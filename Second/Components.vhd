@@ -179,6 +179,8 @@ package ProcessorComponents is
     set_zero5: in std_logic;
     carry5: in std_logic;
     zero5: in std_logic;
+    zero5_load: in std_logic;
+    op_code: in std_logic_vector(3 downto 0);
     set_carry6: in std_logic;
     set_zero6: in std_logic;
     carry6: in std_logic;

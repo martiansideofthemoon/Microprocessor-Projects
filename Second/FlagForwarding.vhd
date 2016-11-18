@@ -8,6 +8,8 @@ entity FlagForwarding is
     set_zero5: in std_logic;
     carry5: in std_logic;
     zero5: in std_logic;
+    zero5_load: in std_logic;
+    op_code: in std_logic_vector(3 downto 0);
     set_carry6: in std_logic;
     set_zero6: in std_logic;
     carry6: in std_logic;
@@ -32,7 +34,7 @@ begin
     ncarry_val := carry5;
   elsif (set_carry6 = '1') then
     ncarry_forward := '1';
-    ncarry_val := '0';
+    ncarry_val := carry6;
   else
     ncarry_forward := '0';
     ncarry_val := '0';
@@ -47,13 +49,18 @@ begin
   end if;
 end process;
 
-process(set_zero5, set_zero6, zero5, zero6, reset)
+process(set_zero5, set_zero6, zero5, zero5_load, op_code, zero6, reset)
   variable nzero_forward: std_logic := '0';
   variable nzero_val: std_logic := '0';
 begin
   if (set_zero5 = '1') then
-    nzero_forward := '1';
-    nzero_val := zero5;
+    if (op_code = "0100") then
+      nzero_forward := '1';
+      nzero_val := zero5_load;
+    else
+      nzero_forward := '1';
+      nzero_val := zero5;
+    end if;
   elsif (set_zero6 = '1') then
     nzero_forward := '1';
     nzero_val := zero6;
