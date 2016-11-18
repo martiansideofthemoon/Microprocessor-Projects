@@ -41,11 +41,16 @@ architecture Mixed of Datapath is
 ---------STAGE 2 - INSTRUCTION DECODE--------------
   signal INST_DECODE: std_logic_vector(DecodeSize-1 downto 0) := (others => '0');
   signal pl_input_zero: std_logic;
+  signal priority_select_in: std_logic;
+  signal pl_reg_write:std_logic_vector(2 downto 0);
 ---------------------------------------------------
   signal P2_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P2_OUT: std_logic_vector(DecodeSize-1 downto 0);
   signal P2_DATA_IN: std_logic_vector(15 downto 0);
   signal P2_DATA_OUT: std_logic_vector(15 downto 0);
+  signal PL_DATA_OUT: std_logic_vector(15 downto 0);
+  signal P2_PL_DATA_IN: std_logic_vector(15 downto 0);
+  signal P2_PL_DATA_OUT: std_logic_vector(15 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 3 - REGISTER READ-------------------
@@ -174,8 +179,22 @@ begin
         p1_enable => p1_enable,
         reset => reset
       );
-  P2_IN <= INST_DECODE;
+  priority_select_in <= '1' when P1_IN(15 downto 12) = "0110" and p1_enable = '1' else '0';
+  PL: PriorityLoop
+      port map(
+        input => P1_OUT(7 downto 0),
+        priority_select => priority_select_in,
+        clock => clk,
+        reset => reset,
+        input_zero => pl_input_zero,
+        output => pl_reg_write,
+        offset => PL_DATA_OUT
+        );
+  P2_IN(DecodeSize-1 downto 9) <= INST_DECODE(DecodeSize-1 downto 9);
+  P2_IN(8 downto 6) <= pl_reg_write when P1_OUT(15 downto 12) = "0110" else INST_DECODE(8 downto 6);
+  P2_IN(5 downto 0) <= INST_DECODE(5 downto 0);
   P2_DATA_IN <= P1_OUT(31 downto 16);
+  P2_PL_DATA_IN <= PL_DATA_OUT;
 ---------------------------------------------------
   P2: DataRegister
       generic map (data_width => DecodeSize)
@@ -191,6 +210,15 @@ begin
       port map (
         Din => P2_DATA_IN,
         Dout => P2_DATA_OUT,
+        Enable => '1',
+        clk => clk,
+        reset => reset
+      );
+  P2_PL_data: DataRegister
+      generic map(data_width => 16)
+      port map (
+        Din => P2_PL_DATA_IN,
+        Dout => P2_PL_DATA_OUT,
         Enable => '1',
         clk => clk,
         reset => reset
@@ -243,7 +271,7 @@ begin
   P3_DATA_IN(15 downto 0) <= SE6_OUT when P2_OUT(25 downto 24) = "01" else
                              DATA2 when P2_OUT(25 downto 24) = "00" else
                              ZERO_PAD9 when P2_OUT(25 downto 24) = "10" else
-                             CONST_0;
+                             P2_PL_DATA_OUT when P2_OUT(25 downto 24) = "11";
 ----------------------------------------------------
   P3: DataRegister
       generic map (data_width => DecodeSize)
