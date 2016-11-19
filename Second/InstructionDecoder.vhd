@@ -304,6 +304,26 @@ begin
       set_carry <= '0';
       set_zero <= '0';
       reg_A3 <= "000";
+    elsif (reset = '0' and op_code = "0111") then
+      -- Generic SM instruction
+      -- Signals for Register Read stage
+      reg_A2 <= "000";
+      reg_A1 <= instruction(11 downto 9);
+      carry_check <= '0';
+      zero_check <= '0';
+      alu2_select <= "11";
+      alu1_select <= "00";
+      immediate <= "000000000";
+      -- Signals for Execute stage
+      alu_op <= '0';
+      -- Signals for Memory stage
+      mem_write <= '1';
+      -- Signals for Register Write stage
+      reg_write <= '0';
+      reg_write_select <= "00";
+      set_carry <= '0';
+      set_zero <= '0';
+      reg_A3 <= "000";
     else
       -- Signals for Register Read stage
       reg_A1 <= "000";

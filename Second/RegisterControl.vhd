@@ -25,12 +25,24 @@ begin
     -- Case of LM with all zeros in input
     npc_enable := '1';
     np1_enable := '1';
+  elsif (op_code = "0111" and instruction(7 downto 0) = "00000000") then
+    -- Case of SM with all zeros in input
+    npc_enable := '1';
+    np1_enable := '1';
   elsif (op_code = "0110" and pl_input_zero = '1') then
     -- LM execution has finished
     npc_enable := '1';
     np1_enable := '1';
+  elsif (op_code = "0111" and pl_input_zero = '1') then
+    -- SM execution has finished
+    npc_enable := '1';
+    np1_enable := '1';
   elsif (op_code = "0110" and pl_input_zero = '0') then
     -- LM execution in progress
+    npc_enable := '0';
+    np1_enable := '0';
+  elsif (op_code = "0111" and pl_input_zero = '0') then
+    -- SM execution in progress
     npc_enable := '0';
     np1_enable := '0';
   else
