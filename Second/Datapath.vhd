@@ -42,18 +42,16 @@ architecture Mixed of Datapath is
   signal INST_DECODE: std_logic_vector(DecodeSize-1 downto 0) := (others => '0');
   signal pl_input_zero: std_logic;
   signal priority_select_in: std_logic;
-  signal pl_reg_write:std_logic_vector(2 downto 0);
+  signal PL_WRITE:std_logic_vector(2 downto 0);
   signal LM_INST_DECODE:std_logic_vector(DecodeSize-1 downto 0);
+  signal PL_OFFSET: std_logic_vector(15 downto 0);
+---------------------------------------------------
   signal P2_IN_DUMMY:std_logic_vector(DecodeSize-1 downto 0);
   signal P2_kill:std_logic_vector(DecodeSize-1 downto 0);
----------------------------------------------------
   signal P2_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P2_OUT: std_logic_vector(DecodeSize-1 downto 0);
-  signal P2_DATA_IN: std_logic_vector(15 downto 0);
-  signal P2_DATA_OUT: std_logic_vector(15 downto 0);
-  signal PL_DATA_OUT: std_logic_vector(15 downto 0);
-  signal P2_PL_DATA_IN: std_logic_vector(15 downto 0);
-  signal P2_PL_DATA_OUT: std_logic_vector(15 downto 0);
+  signal P2_DATA_IN: std_logic_vector(31 downto 0);
+  signal P2_DATA_OUT: std_logic_vector(31 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 3 - REGISTER READ-------------------
@@ -190,12 +188,12 @@ begin
         clock => clk,
         reset => reset,
         input_zero => pl_input_zero,
-        output => pl_reg_write,
-        offset => PL_DATA_OUT
+        output => PL_WRITE,
+        offset => PL_OFFSET
         );
 
   LM_INST_DECODE(DecodeSize-1 downto 14) <= INST_DECODE(DecodeSize-1 downto 14);
-  LM_INST_DECODE(13 downto 11) <= pl_reg_write when P1_OUT(15 downto 12) = "0110" else INST_DECODE(13 downto 11);
+  LM_INST_DECODE(13 downto 11) <= PL_WRITE when P1_OUT(15 downto 12) = "0110" else INST_DECODE(13 downto 11);
   LM_INST_DECODE(10 downto 0) <= INST_DECODE(10 downto 0);
   P2_IN_DUMMY <= LM_INST_DECODE when P1_OUT(15 downto 12) = "0110" else INST_DECODE;
 
@@ -207,8 +205,8 @@ begin
 
   P2_IN <= P2_kill when P1_OUT(7 downto 0) = "00000000" else
            P2_IN_DUMMY;
-  P2_DATA_IN <= P1_OUT(31 downto 16);
-  P2_PL_DATA_IN <= PL_DATA_OUT;
+  P2_DATA_IN(15 downto 0) <= P1_OUT(31 downto 16);
+  P2_DATA_IN(31 downto 16) <= PL_OFFSET;
 
 ---------------------------------------------------
   P2: DataRegister
@@ -221,19 +219,10 @@ begin
         reset => reset
       );
   P2_data: DataRegister
-      generic map(data_width => 16)
+      generic map(data_width => 32)
       port map (
         Din => P2_DATA_IN,
         Dout => P2_DATA_OUT,
-        Enable => '1',
-        clk => clk,
-        reset => reset
-      );
-  P2_PL_data: DataRegister
-      generic map(data_width => 16)
-      port map (
-        Din => P2_PL_DATA_IN,
-        Dout => P2_PL_DATA_OUT,
         Enable => '1',
         clk => clk,
         reset => reset
@@ -286,7 +275,7 @@ begin
   P3_DATA_IN(15 downto 0) <= SE6_OUT when P2_OUT(25 downto 24) = "01" else
                              DATA2 when P2_OUT(25 downto 24) = "00" else
                              ZERO_PAD9 when P2_OUT(25 downto 24) = "10" else
-                             P2_PL_DATA_OUT when P2_OUT(25 downto 24) = "11";
+                             P2_DATA_OUT(31 downto 16) when P2_OUT(25 downto 24) = "11";
 ----------------------------------------------------
   P3: DataRegister
       generic map (data_width => DecodeSize)

@@ -97,8 +97,8 @@ architecture Struct of PriorityLoop is
   signal input_reg_in: std_logic_vector(7 downto 0);
   signal demux_out: std_logic_vector(7 downto 0);
   signal increment_out: std_logic_vector(15 downto 0);
-  signal increment_in: std_logic_vector(15 downto 0);
-  signal data_offset: std_logic_vector(15 downto 0);
+  signal offset_out: std_logic_vector(15 downto 0);
+  signal offset_in: std_logic_vector(15 downto 0);
   signal CONST_0: std_logic_vector(15 downto 0) := (others => '0');
 begin
   input_reg_in <= input when priority_select = '1' else feedback;
@@ -126,18 +126,18 @@ begin
   input_zero <= '1' when feedback = "00000000" else '0';
   update_offset:  Increment
        port map (
-         input => increment_in,
+         input => offset_out,
          output => increment_out
        );
-  data_offset <= CONST_0 when priority_select = '1' else increment_out;
+  offset_in <= CONST_0 when priority_select = '1' else increment_out;
   offset_reg: DataRegister
       generic map (data_width => 16)
       port map (
-        Din => data_offset,
-        Dout => increment_in,
+        Din => offset_in,
+        Dout => offset_out,
         Enable => '1',
         clk => clock,
         reset => reset
       );
-  offset <= increment_in;
+  offset <= offset_out;
 end Struct;
