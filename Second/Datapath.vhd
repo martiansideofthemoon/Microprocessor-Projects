@@ -63,8 +63,8 @@ architecture Mixed of Datapath is
 ---------------------------------------------------
   signal P3_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P3_OUT: std_logic_vector(DecodeSize-1 downto 0);
-  signal P3_DATA_IN: std_logic_vector(47 downto 0);
-  signal P3_DATA_OUT: std_logic_vector(47 downto 0);
+  signal P3_DATA_IN: std_logic_vector(63 downto 0);
+  signal P3_DATA_OUT: std_logic_vector(63 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 4 - EXECUTE STAGE-------------------
@@ -82,8 +82,8 @@ architecture Mixed of Datapath is
 ---------------------------------------------------
   signal P4_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P4_OUT: std_logic_vector(DecodeSize-1 downto 0);
-  signal P4_DATA_IN: std_logic_vector(31 downto 0);
-  signal P4_DATA_OUT: std_logic_vector(31 downto 0);
+  signal P4_DATA_IN: std_logic_vector(47 downto 0);
+  signal P4_DATA_OUT: std_logic_vector(47 downto 0);
   signal P4_FLAG_IN: std_logic_vector(1 downto 0);
   signal P4_FLAG_OUT: std_logic_vector(1 downto 0);
   signal P4_kill: std_logic_vector(DecodeSize-1 downto 0);
@@ -275,6 +275,8 @@ begin
        );
 
   P3_IN <= P2_OUT;
+  -- Used for memory data input
+  P3_DATA_IN(63 downto 48) <= DATA2;
   P3_DATA_IN(47 downto 32) <= P2_DATA_OUT(15 downto 0);
   P3_DATA_IN(31 downto 16) <= DATA1 when P2_OUT(27 downto 26) = "00" else
                               CONST_0;
@@ -293,7 +295,7 @@ begin
         reset => reset
       );
   P3_data: DataRegister
-      generic map(data_width => 48)
+      generic map(data_width => 64)
       port map (
         Din => P3_DATA_IN,
         Dout => P3_DATA_OUT,
@@ -345,6 +347,7 @@ begin
   P4_IN <= P4_kill when P3_OUT(34) = '1' and FINAL_CARRY(0) = '0' else
            P4_kill when P3_OUT(35) = '1' and FINAL_ZERO(0) = '0' else
            P3_OUT;
+  P4_DATA_IN(47 downto 32) <= P3_DATA_OUT(63 downto 48);
   P4_DATA_IN(31 downto 16) <= P3_DATA_OUT(47 downto 32);
   P4_DATA_IN(15 downto 0) <= ALU_OUT;
   P4_FLAG_IN(1) <= ALU_carry;
@@ -360,7 +363,7 @@ begin
         reset => reset
       );
   P4_data: DataRegister
-      generic map(data_width => 32)
+      generic map(data_width => 48)
       port map (
         Din => P4_DATA_IN,
         Dout => P4_DATA_OUT,
@@ -381,6 +384,7 @@ begin
 ---------------------------------------------------
 ---------STAGE 5 - MEMORY STAGE--------------------
   ADDRESS_IN <= P4_DATA_OUT(15 downto 0);
+  MEMDATA_IN <= P4_DATA_OUT(47 downto 32);
   ME: Memory
       port map (
         clk => clk,
