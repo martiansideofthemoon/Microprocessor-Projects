@@ -32,8 +32,8 @@ architecture Mixed of Datapath is
   signal PC_INCREMENT: std_logic_vector(15 downto 0);
   signal INST_MEMORY: std_logic_vector(15 downto 0);
   signal pc_enable: std_logic;
-  signal p1_enable: std_logic;
 ---------------------------------------------------
+  signal p1_enable: std_logic;
   signal P1_IN: std_logic_vector(31 downto 0);
   signal P1_OUT: std_logic_vector(31 downto 0);
 
@@ -46,6 +46,7 @@ architecture Mixed of Datapath is
   signal LM_SM_INST_DECODE:std_logic_vector(DecodeSize-1 downto 0);
   signal PL_OFFSET: std_logic_vector(15 downto 0);
 ---------------------------------------------------
+  signal p2_enable: std_logic;
   signal P2_IN_DUMMY:std_logic_vector(DecodeSize-1 downto 0);
   signal P2_kill:std_logic_vector(DecodeSize-1 downto 0);
   signal P2_IN: std_logic_vector(DecodeSize-1 downto 0);
@@ -63,6 +64,7 @@ architecture Mixed of Datapath is
   signal SE9_OUT: std_logic_vector(15 downto 0);
   signal ZERO_PAD9: std_logic_vector(15 downto 0);
 ---------------------------------------------------
+  signal p3_enable: std_logic;
   signal P3_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P3_OUT: std_logic_vector(DecodeSize-1 downto 0);
   signal P3_DATA_IN: std_logic_vector(63 downto 0);
@@ -91,6 +93,7 @@ architecture Mixed of Datapath is
   signal forward3_2: std_logic;
   
 ---------------------------------------------------
+  signal p4_enable: std_logic;
   signal P4_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P4_OUT: std_logic_vector(DecodeSize-1 downto 0);
   signal P4_DATA_IN: std_logic_vector(47 downto 0);
@@ -107,6 +110,7 @@ architecture Mixed of Datapath is
   signal MEM_OUT: std_logic_vector(15 downto 0);
   signal mem_load_zero: std_logic;
 ---------------------------------------------------
+  signal p5_enable: std_logic;
   signal P5_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P5_OUT: std_logic_vector(DecodeSize-1 downto 0);
   signal P5_DATA_IN: std_logic_vector(47 downto 0);
@@ -189,6 +193,10 @@ begin
         pl_input_zero => pl_input_zero,
         pc_enable => pc_enable,
         p1_enable => p1_enable,
+        p2_enable => p2_enable,
+        p3_enable => p3_enable,
+        p4_enable => p4_enable,
+        p5_enable => p5_enable,
         reset => reset
       );
   priority_select_in <= '1' when P1_IN(15 downto 12) = "0110" and p1_enable = '1' else
@@ -202,7 +210,8 @@ begin
         reset => reset,
         input_zero => pl_input_zero,
         output => PL_WRITE,
-        offset => PL_OFFSET
+        offset => PL_OFFSET,
+        pl_enable => p2_enable
         );
 
   LM_SM_INST_DECODE(DecodeSize-1 downto 14) <= INST_DECODE(DecodeSize-1 downto 14);
@@ -231,7 +240,7 @@ begin
       port map (
         Din => P2_IN,
         Dout => P2_OUT,
-        Enable => '1',
+        Enable => p2_enable,
         clk => clk,
         reset => reset
       );
@@ -240,7 +249,7 @@ begin
       port map (
         Din => P2_DATA_IN,
         Dout => P2_DATA_OUT,
-        Enable => '1',
+        Enable => p2_enable,
         clk => clk,
         reset => reset
       );
@@ -304,7 +313,7 @@ begin
       port map (
         Din => P3_IN,
         Dout => P3_OUT,
-        Enable => '1',
+        Enable => p3_enable,
         clk => clk,
         reset => reset
       );
@@ -313,7 +322,7 @@ begin
       port map (
         Din => P3_DATA_IN,
         Dout => P3_DATA_OUT,
-        Enable => '1',
+        Enable => p3_enable,
         clk => clk,
         reset => reset
       );
@@ -397,7 +406,7 @@ begin
       port map (
         Din => P4_IN,
         Dout => P4_OUT,
-        Enable => '1',
+        Enable => p4_enable,
         clk => clk,
         reset => reset
       );
@@ -406,7 +415,7 @@ begin
       port map (
         Din => P4_DATA_IN,
         Dout => P4_DATA_OUT,
-        Enable => '1',
+        Enable => p4_enable,
         clk => clk,
         reset => reset
       );
@@ -415,7 +424,7 @@ begin
       port map (
         Din => P4_FLAG_IN,
         Dout => P4_FLAG_OUT,
-        Enable => '1',
+        Enable => p4_enable,
         clk => clk,
         reset => reset
       );
@@ -451,7 +460,7 @@ begin
       port map (
         Din => P5_IN,
         Dout => P5_OUT,
-        Enable => '1',
+        Enable => p5_enable,
         clk => clk,
         reset => reset
       );
@@ -460,7 +469,7 @@ begin
       port map (
         Din => P5_DATA_IN,
         Dout => P5_DATA_OUT,
-        Enable => '1',
+        Enable => p5_enable,
         clk => clk,
         reset => reset
       );
@@ -469,7 +478,7 @@ begin
       port map (
         Din => P5_FLAG_IN,
         Dout => P5_FLAG_OUT,
-        Enable => '1',
+        Enable => p5_enable,
         clk => clk,
         reset => reset
       );

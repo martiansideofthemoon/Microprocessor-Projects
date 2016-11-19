@@ -62,7 +62,8 @@ package ProcessorComponents is
     priority_select, clock, reset: in std_logic;
     input_zero: out std_logic;
     offset: out std_logic_vector(15 downto 0);
-    output: out std_logic_vector(2 downto 0)
+    output: out std_logic_vector(2 downto 0);
+    pl_enable: in std_logic
   );
   end component PriorityLoop;
 
@@ -226,6 +227,10 @@ package ProcessorComponents is
       pl_input_zero: in std_logic;
       pc_enable: out std_logic;
       p1_enable: out std_logic;
+      p2_enable: out std_logic;
+      p3_enable: out std_logic;
+      p4_enable: out std_logic;
+      p5_enable: out std_logic;
       reset: in std_logic
     );
   end component RegisterControl;

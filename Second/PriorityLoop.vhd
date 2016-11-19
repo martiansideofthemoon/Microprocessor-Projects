@@ -86,7 +86,8 @@ entity PriorityLoop is
     priority_select, clock, reset: in std_logic;
     input_zero: out std_logic;
     offset: out std_logic_vector(15 downto 0);
-    output: out std_logic_vector(2 downto 0)
+    output: out std_logic_vector(2 downto 0);
+    pl_enable: in std_logic
   );
 end entity PriorityLoop;
 
@@ -107,7 +108,7 @@ begin
              port map (
                 Din => input_reg_in,
                 Dout => priority_in,
-                enable => '1',
+                enable => pl_enable,
                 clk => clock,
                 reset => reset
               );
@@ -135,7 +136,7 @@ begin
       port map (
         Din => offset_in,
         Dout => offset_out,
-        Enable => '1',
+        Enable => pl_enable,
         clk => clock,
         reset => reset
       );
