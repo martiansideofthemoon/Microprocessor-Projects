@@ -59,8 +59,9 @@ package ProcessorComponents is
   component PriorityLoop is
   port (
     input: in std_logic_vector(7 downto 0);
-    priority_select, clock: in std_logic;
+    priority_select, clock, reset: in std_logic;
     input_zero: out std_logic;
+    offset: out std_logic_vector(15 downto 0);
     output: out std_logic_vector(2 downto 0)
   );
   end component PriorityLoop;

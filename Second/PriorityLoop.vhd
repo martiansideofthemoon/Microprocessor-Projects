@@ -83,7 +83,7 @@ use work.ProcessorComponents.all;
 entity PriorityLoop is
   port (
     input: in std_logic_vector(7 downto 0);
-    priority_select, clock: in std_logic;
+    priority_select, clock, reset: in std_logic;
     input_zero: out std_logic;
     offset: out std_logic_vector(15 downto 0);
     output: out std_logic_vector(2 downto 0)
@@ -96,7 +96,9 @@ architecture Struct of PriorityLoop is
   signal priority_in: std_logic_vector(7 downto 0);
   signal input_reg_in: std_logic_vector(7 downto 0);
   signal demux_out: std_logic_vector(7 downto 0);
-  signal offset_out: std_logic_vector(15 downto 0);
+  signal increment_out: std_logic_vector(15 downto 0);
+  signal increment_in: std_logic_vector(15 downto 0);
+  signal data_offset: std_logic_vector(15 downto 0);
   signal CONST_0: std_logic_vector(15 downto 0) := (others => '0');
 begin
   input_reg_in <= input when priority_select = '1' else feedback;
@@ -106,7 +108,8 @@ begin
                 Din => input_reg_in,
                 Dout => priority_in,
                 enable => '1',
-                clk => clock
+                clk => clock,
+                reset => reset
               );
   encoder: PriorityEncoder
            port map (
@@ -121,19 +124,20 @@ begin
           );
   feedback <= demux_out xor priority_in;
   input_zero <= '1' when feedback = "00000000" else '0';
-
   update_offset:  Increment
        port map (
-         input => offset,
-         output => offset_out
+         input => increment_in,
+         output => increment_out
        );
+  data_offset <= CONST_0 when priority_select = '1' else increment_out;
   offset_reg: DataRegister
       generic map (data_width => 16)
       port map (
-        Din => CONST_0 when priority_select = '1' else offset_out,
-        Dout => offset,
+        Din => data_offset,
+        Dout => increment_in,
         Enable => '1',
-        clk => clk,
+        clk => clock,
         reset => reset
       );
+  offset <= increment_in;
 end Struct;

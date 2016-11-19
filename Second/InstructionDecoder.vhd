@@ -287,11 +287,11 @@ begin
     elsif (reset = '0' and op_code = "0110") then
       -- Generic LM instruction
       -- Signals for Register Read stage
-      reg_A1 <= instruction(8 downto 6);
-      reg_A2 <= instruction(11 downto 9);
+      reg_A2 <= instruction(8 downto 6);
+      reg_A1 <= instruction(11 downto 9);
       carry_check <= '0';
       zero_check <= '0';
-      alu2_select <= "01";
+      alu2_select <= "11";
       alu1_select <= "00";
       immediate <= instruction(8 downto 0);
       -- Signals for Execute stage
