@@ -41,9 +41,11 @@ architecture Mixed of Datapath is
 ---------STAGE 2 - INSTRUCTION DECODE--------------
   signal INST_DECODE: std_logic_vector(DecodeSize-1 downto 0) := (others => '0');
   signal pl_input_zero: std_logic;
+  signal LM_SM:std_logic;
   signal priority_select_in: std_logic;
   signal PL_WRITE:std_logic_vector(2 downto 0);
-  signal LM_SM_INST_DECODE:std_logic_vector(DecodeSize-1 downto 0);
+  signal LM_INST_DECODE:std_logic_vector(DecodeSize-1 downto 0);
+  signal SM_INST_DECODE:std_logic_vector(DecodeSize-1 downto 0);
   signal PL_OFFSET: std_logic_vector(15 downto 0);
 ---------------------------------------------------
   signal p2_enable: std_logic;
@@ -214,13 +216,17 @@ begin
         pl_enable => p2_enable
         );
 
-  LM_SM_INST_DECODE(DecodeSize-1 downto 14) <= INST_DECODE(DecodeSize-1 downto 14);
-  LM_SM_INST_DECODE(13 downto 11) <= PL_WRITE when P1_OUT(15 downto 12) = "0110" else
-                                     PL_WRITE when P1_OUT(15 downto 12) = "0111" else
+  LM_INST_DECODE(DecodeSize-1 downto 14) <= INST_DECODE(DecodeSize-1 downto 14);
+  LM_INST_DECODE(13 downto 11) <= PL_WRITE when P1_OUT(15 downto 12) = "0110" else
                                      INST_DECODE(13 downto 11);
-  LM_SM_INST_DECODE(10 downto 0) <= INST_DECODE(10 downto 0);
-  P2_IN_DUMMY <= LM_SM_INST_DECODE when P1_OUT(15 downto 12) = "0110" else
-                 LM_SM_INST_DECODE when P1_OUT(15 downto 12) = "0111" else
+  LM_INST_DECODE(10 downto 0) <= INST_DECODE(10 downto 0);
+
+  SM_INST_DECODE(DecodeSize-1 downto 3) <= INST_DECODE(DecodeSize-1 downto 3);
+  SM_INST_DECODE(2 downto 0) <= PL_WRITE when P1_OUT(15 downto 12) = "0111" else
+                                     INST_DECODE(2 downto 0);
+
+  P2_IN_DUMMY <= LM_INST_DECODE when P1_OUT(15 downto 12) = "0110" else
+                 SM_INST_DECODE when P1_OUT(15 downto 12) = "0111" else
                  INST_DECODE;
 
   Kill_LM_SM: KillInstruction
@@ -228,8 +234,10 @@ begin
         Decode_in => P2_IN_DUMMY,
         Decode_out => P2_kill
         );
-
-  P2_IN <= P2_kill when P1_OUT(7 downto 0) = "00000000" else
+  LM_SM <= '1' when P1_OUT(15 downto 12) = "0110" else
+           '1' when P1_OUT(15 downto 12) = "0111" else
+           '0';
+  P2_IN <= P2_kill when P1_OUT(7 downto 0) = "00000000" and LM_SM = '1' else
            P2_IN_DUMMY;
   P2_DATA_IN(15 downto 0) <= P1_OUT(31 downto 16);
   P2_DATA_IN(31 downto 16) <= PL_OFFSET;
@@ -443,7 +451,7 @@ begin
       );
   LS2: LeftShift
       port map (
-        input => ADDRESS_IN,
+        input   => ADDRESS_IN,
         output => LSHIFT_ADDRESS_IN
       );
   mem_load_zero <= '1' when MEM_OUT = "0000000000000000" else '0';
