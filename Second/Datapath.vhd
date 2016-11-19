@@ -43,6 +43,9 @@ architecture Mixed of Datapath is
   signal pl_input_zero: std_logic;
   signal priority_select_in: std_logic;
   signal pl_reg_write:std_logic_vector(2 downto 0);
+  signal LM_INST_DECODE:std_logic_vector(DecodeSize-1 downto 0);
+  signal P2_IN_DUMMY:std_logic_vector(DecodeSize-1 downto 0);
+  signal P2_kill:std_logic_vector(DecodeSize-1 downto 0);
 ---------------------------------------------------
   signal P2_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P2_OUT: std_logic_vector(DecodeSize-1 downto 0);
@@ -182,7 +185,7 @@ begin
   priority_select_in <= '1' when P1_IN(15 downto 12) = "0110" and p1_enable = '1' else '0';
   PL: PriorityLoop
       port map(
-        input => P1_OUT(7 downto 0),
+        input => P1_IN(7 downto 0),
         priority_select => priority_select_in,
         clock => clk,
         reset => reset,
@@ -190,11 +193,23 @@ begin
         output => pl_reg_write,
         offset => PL_DATA_OUT
         );
-  P2_IN(DecodeSize-1 downto 9) <= INST_DECODE(DecodeSize-1 downto 9);
-  P2_IN(8 downto 6) <= pl_reg_write when P1_OUT(15 downto 12) = "0110" else INST_DECODE(8 downto 6);
-  P2_IN(5 downto 0) <= INST_DECODE(5 downto 0);
+
+  LM_INST_DECODE(DecodeSize-1 downto 14) <= INST_DECODE(DecodeSize-1 downto 14);
+  LM_INST_DECODE(13 downto 11) <= pl_reg_write when P1_OUT(15 downto 12) = "0110" else INST_DECODE(13 downto 11);
+  LM_INST_DECODE(10 downto 0) <= INST_DECODE(10 downto 0);
+  P2_IN_DUMMY <= LM_INST_DECODE when P1_OUT(15 downto 12) = "0110" else INST_DECODE;
+
+  Kill_LM: KillInstruction
+      port map (
+        Decode_in => P2_IN_DUMMY,
+        Decode_out => P2_kill
+        );
+
+  P2_IN <= P2_kill when P1_OUT(7 downto 0) = "00000000" else
+           P2_IN_DUMMY;
   P2_DATA_IN <= P1_OUT(31 downto 16);
   P2_PL_DATA_IN <= PL_DATA_OUT;
+
 ---------------------------------------------------
   P2: DataRegister
       generic map (data_width => DecodeSize)
