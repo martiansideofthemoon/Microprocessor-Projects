@@ -200,8 +200,8 @@ package ProcessorComponents is
     input2: in std_logic_vector(2 downto 0);
     alu_out5: in std_logic_vector(15 downto 0);
     op_code: in std_logic_vector(3 downto 0);
-    output5: in std_logic_vector(2 downto 0);
-    output6: in std_logic_vector(2 downto 0);
+    stage5: in std_logic_vector(2 downto 0);
+    stage6: in std_logic_vector(2 downto 0);
     alu_out6: in std_logic_vector(15 downto 0);
     ip_forward1: out std_logic;
     ip_forward2: out std_logic;
