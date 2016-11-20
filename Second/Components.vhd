@@ -194,6 +194,23 @@ package ProcessorComponents is
   );
   end component FlagForwarding;
 
+  component DataForwarding is
+  port (
+    input1: in std_logic_vector(2 downto 0);
+    input2: in std_logic_vector(2 downto 0);
+    alu_out5: in std_logic_vector(15 downto 0);
+    op_code: in std_logic_vector(3 downto 0);
+    output5: in std_logic_vector(2 downto 0);
+    output6: in std_logic_vector(2 downto 0);
+    alu_out6: in std_logic_vector(15 downto 0);
+    ip_forward1: out std_logic;
+    ip_forward2: out std_logic;
+    ip_forward_data1: out std_logic_vector(15 downto 0);
+    ip_forward_data2: out std_logic_vector(15 downto 0);
+    reset: in std_logic
+  );
+  end component DataForwarding;
+
   component RegisterControl is
     port (
       instruction: in std_logic_vector(15 downto 0);
