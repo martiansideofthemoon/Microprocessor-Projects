@@ -6,6 +6,7 @@ entity RegisterControl is
   port (
     instruction: in std_logic_vector(15 downto 0);
     pl_input_zero: in std_logic;
+    load5_read4: in std_logic;
     pc_enable: out std_logic;
     p1_enable: out std_logic;
     p2_enable: out std_logic;
@@ -81,10 +82,15 @@ begin
 end process;
 
 -- Decision for enable_signals(3)
-process(instruction, op_code, pl_input_zero, reset)
+process(instruction, op_code, pl_input_zero, load5_read4, reset)
 variable n_enable3: std_logic;
 begin
   n_enable3 := '1';
+  if (load5_read4 = '1') then
+    n_enable3 := '0';
+  else
+    n_enable3 := '1';
+  end if;
   if reset = '1' then
     enable_signals(3) <= '1';
   else

@@ -35,6 +35,12 @@ package ProcessorComponents is
         );
   end component;
 
+  component KillStallInstruction is
+  port (Decode_in: in std_logic_vector(DecodeSize-1 downto 0);
+        Decode_out: out std_logic_vector(DecodeSize-1 downto 0)
+        );
+  end component;
+
   component DataRegister is
   generic (data_width:integer);
   port (Din: in std_logic_vector(data_width-1 downto 0);
@@ -196,35 +202,63 @@ package ProcessorComponents is
   end component FlagForwarding;
 
   component DataForwarding is
-  port (
-    input1: in std_logic_vector(2 downto 0);
-    input2: in std_logic_vector(2 downto 0);
-    ip1_frm3: in std_logic_vector(2 downto 0);
-    ip2_frm3: in std_logic_vector(2 downto 0);
-    alu_out5: in std_logic_vector(15 downto 0);
-    op_code4: in std_logic_vector(3 downto 0);
-    op_code3: in std_logic_vector(3 downto 0);
-    stage5: in std_logic_vector(2 downto 0);
-    stage6: in std_logic_vector(2 downto 0);
-    alu_out6: in std_logic_vector(15 downto 0);
-    reg_write5: in std_logic;
-    reg_write6: in std_logic;
-    ip_forward1: out std_logic;
-    ip_forward2: out std_logic;
-    ip_forward_data1: out std_logic_vector(15 downto 0);
-    ip_forward_data2: out std_logic_vector(15 downto 0);
-    forward3_1: out std_logic;
-    forward3_2: out std_logic;
-    forward3_data1: out std_logic_vector(15 downto 0);
-    forward3_data2: out std_logic_vector(15 downto 0);
-    reset: in std_logic
-  );
+    port (
+      -- STAGE 3
+      -- stage3 opcode --> 9 downto 6
+      -- stage3 regA1 --> 5 downto 3
+      -- stage3 regA2 --> 2 downto 0
+      stage3_signals: in std_logic_vector(9 downto 0);
+
+      -- STAGE 4
+      -- stage4 opcode --> 9 downto 6
+      -- stage4 regA1 --> 5 downto 3
+      -- stage4 regA2 --> 2 downto 0
+      stage4_signals: in std_logic_vector(9 downto 0);
+
+      -- STAGE 5
+      -- stage5 reg_write --> 8
+      -- stage5 r7_write --> 7
+      -- stage5 opcode --> 6 downto 3
+      -- stage5 writeA3 --> 2 downto 0
+      stage5_signals: in std_logic_vector(8 downto 0);
+      -- stage5 r7_data --> 31 downto 16
+      -- stage5 regdata_in --> 15 downto 0
+      stage5_data: in std_logic_vector(31 downto 0);
+
+      -- STAGE 6
+      -- stage6 reg_write --> 4
+      -- stage6 r7_write --> 3
+      -- stage6 writeA3 --> 2 downto 0
+      stage6_signals: in std_logic_vector(4 downto 0);
+      -- stage6 r7_data --> 31 downto 16
+      -- stage6 regdata_in --> 15 downto 0
+      stage6_data: in std_logic_vector(31 downto 0);
+
+      -- Load-Read Distress Signal
+      -- Pipeline should be stalled for one cycle
+      -- Forwarding will happen when load reaches stage 6
+      load5_read4: out std_logic;
+
+      -- Forward to Stage 3
+      forward3_regA1: out std_logic;
+      forward3_regA2: out std_logic;
+      forward3_dataA1: out std_logic_vector(15 downto 0);
+      forward3_dataA2: out std_logic_vector(15 downto 0);
+      -- Forward to Stage 4
+      forward4_regA1: out std_logic;
+      forward4_regA2: out std_logic;
+      forward4_dataA1: out std_logic_vector(15 downto 0);
+      forward4_dataA2: out std_logic_vector(15 downto 0);
+      -- Reset Signal
+      reset: in std_logic
+    );
   end component DataForwarding;
 
   component RegisterControl is
     port (
       instruction: in std_logic_vector(15 downto 0);
       pl_input_zero: in std_logic;
+      load5_read4: in std_logic;
       pc_enable: out std_logic;
       p1_enable: out std_logic;
       p2_enable: out std_logic;
@@ -361,6 +395,24 @@ architecture Behave of KillInstruction is
 begin
 -- Bit 14 set to one as we want R7_write
 Decode_out <= (14 => '1', others => '0');
+
+end Behave;
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+library work;
+use work.ProcessorComponents.all;
+entity KillStallInstruction is
+port (
+  Decode_in: in std_logic_vector(DecodeSize-1 downto 0);
+  Decode_out: out std_logic_vector(DecodeSize-1 downto 0)
+);
+end entity KillStallInstruction;
+architecture Behave of KillStallInstruction is
+begin
+-- Bit 14 set to one as we want R7_write
+Decode_out <= (others => '0');
 
 end Behave;
 

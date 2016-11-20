@@ -4,127 +4,304 @@ library work;
 use work.ProcessorComponents.all;
 entity DataForwarding is
   port (
-    input1: in std_logic_vector(2 downto 0);
-    input2: in std_logic_vector(2 downto 0);
-    ip1_frm3: in std_logic_vector(2 downto 0);
-    ip2_frm3: in std_logic_vector(2 downto 0);
-    alu_out5: in std_logic_vector(15 downto 0);
-    op_code4: in std_logic_vector(3 downto 0);
-    op_code3: in std_logic_vector(3 downto 0);
-    stage5: in std_logic_vector(2 downto 0);
-    stage6: in std_logic_vector(2 downto 0);
-    alu_out6: in std_logic_vector(15 downto 0);
-    reg_write5: in std_logic;
-    reg_write6: in std_logic;
-    ip_forward1: out std_logic;
-    ip_forward2: out std_logic;
-    ip_forward_data1: out std_logic_vector(15 downto 0);
-    ip_forward_data2: out std_logic_vector(15 downto 0);
-    forward3_1: out std_logic;
-    forward3_2: out std_logic;
-    forward3_data1: out std_logic_vector(15 downto 0);
-    forward3_data2: out std_logic_vector(15 downto 0);
+    -- STAGE 3
+    -- stage3 opcode --> 9 downto 6
+    -- stage3 regA1 --> 5 downto 3
+    -- stage3 regA2 --> 2 downto 0
+    stage3_signals: in std_logic_vector(9 downto 0);
+
+    -- STAGE 4
+    -- stage4 opcode --> 9 downto 6
+    -- stage4 regA1 --> 5 downto 3
+    -- stage4 regA2 --> 2 downto 0
+    stage4_signals: in std_logic_vector(9 downto 0);
+
+    -- STAGE 5
+    -- stage5 reg_write --> 8
+    -- stage5 r7_write --> 7
+    -- stage5 opcode --> 6 downto 3
+    -- stage5 writeA3 --> 2 downto 0
+    stage5_signals: in std_logic_vector(8 downto 0);
+    -- stage5 r7_data --> 31 downto 16
+    -- stage5 regdata_in --> 15 downto 0
+    stage5_data: in std_logic_vector(31 downto 0);
+
+    -- STAGE 6
+    -- stage6 reg_write --> 4
+    -- stage6 r7_write --> 3
+    -- stage6 writeA3 --> 2 downto 0
+    stage6_signals: in std_logic_vector(4 downto 0);
+    -- stage6 r7_data --> 31 downto 16
+    -- stage6 regdata_in --> 15 downto 0
+    stage6_data: in std_logic_vector(31 downto 0);
+
+    -- Load-Read Distress Signal
+    -- Pipeline should be stalled for one cycle
+    -- Forwarding will happen when load reaches stage 6
+    load5_read4: out std_logic;
+
+    -- Forward to Stage 3
+    forward3_regA1: out std_logic;
+    forward3_regA2: out std_logic;
+    forward3_dataA1: out std_logic_vector(15 downto 0);
+    forward3_dataA2: out std_logic_vector(15 downto 0);
+    -- Forward to Stage 4
+    forward4_regA1: out std_logic;
+    forward4_regA2: out std_logic;
+    forward4_dataA1: out std_logic_vector(15 downto 0);
+    forward4_dataA2: out std_logic_vector(15 downto 0);
+    -- Reset Signal
     reset: in std_logic
   );
 end entity DataForwarding;
 
 architecture Struct of DataForwarding is
 begin
-process(input1, stage5, stage6, alu_out5, alu_out6, reset)
-  variable nip_forward1: std_logic := '0';
-  variable nip_forward_data1: std_logic_vector(15 downto 0) := (others => '0');
-  variable nforward3_1: std_logic := '0';
-  variable nforward3_data1: std_logic_vector(15 downto 0) := (others => '0');
+
+-- Process to generate Load Distress Signals
+process(stage4_signals, stage5_signals, reset)
+  variable stage4_opcode: std_logic_vector(3 downto 0);
+  variable stage4_regA1: std_logic_vector(2 downto 0);
+  variable stage4_regA2: std_logic_vector(2 downto 0);
+
+  variable stage5_opcode: std_logic_vector(3 downto 0);
+  variable stage5_writeA3: std_logic_vector(2 downto 0);
+  variable stage5_regwrite: std_logic;
+
+  variable nload5_read4_regA1: std_logic;
+  variable nload5_read4_regA2: std_logic;
 begin
+  stage4_opcode := stage4_signals(9 downto 6);
+  stage4_regA1 := stage4_signals(5 downto 3);
+  stage4_regA2 := stage4_signals(2 downto 0);
 
-  if (op_code4 = "0000" or op_code4 = "0001" or op_code4 = "0010") then  
-    if (input1 = stage5 and reg_write5 = '1') then 
-      nip_forward1 := '1';
-      nip_forward_data1 := alu_out5;
-    elsif (input1 = stage6 and reg_write6 = '1') then
-      nip_forward1 := '1';
-      nip_forward_data1 := alu_out6;
-    else
-      nip_forward1 := '0';
-      nip_forward_data1 := (others => '0');
-    end if;
-  else 
-    nip_forward1 := '0';
-    nip_forward_data1 := (others => '0');
-  end if;
+  stage5_opcode := stage5_signals(6 downto 3);
+  stage5_writeA3 := stage5_signals(2 downto 0);
+  stage5_regwrite := stage5_signals(8);
 
-  if (op_code3 = "0000" or op_code3 = "0001" or op_code3 = "0010") then  
-    if (ip1_frm3 = stage6 and reg_write6 = '1') then 
-      nforward3_1 := '1';
-      nforward3_data1 := alu_out6;
+  nload5_read4_regA1 := '0';
+  nload5_read4_regA2 := '0';
+
+  -- TODO :- BRANCH op_codes
+  -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW
+  if (stage4_opcode = "0000" or stage4_opcode = "0001" or
+      stage4_opcode = "0010" or stage4_opcode = "0100" or
+      stage4_opcode = "0101" or stage4_opcode = "0110") then
+    if ((stage5_opcode = "0100" or stage5_opcode = "0110") and
+        stage5_regwrite = '1' and stage4_regA1 = stage5_writeA3) then
+      nload5_read4_regA1 := '1';
     else
-      nforward3_1 := '0';
-      nforward3_data1 := (others => '0');
+      nload5_read4_regA1 := '0';
     end if;
-  else 
-    nforward3_1 := '0';
-    nforward3_data1 := (others => '0');
-  end if;
-  
-  if reset = '1' then
-    ip_forward_data1 <= (others => '0');
-    ip_forward1 <= '0';
-    forward3_1 <= '0';
-    forward3_data1 <= (others => '0');
   else
-    ip_forward_data1 <= nip_forward_data1;
-    ip_forward1 <= nip_forward1;
-    forward3_1 <= nforward3_1;
-    forward3_data1 <= nforward3_data1;
+    nload5_read4_regA1 := '0';
   end if;
+
+  -- TODO :- BRANCH op_codes
+  -- Current opcodes include all ADDs, NDUs, SW
+  if (stage4_opcode = "0000" or stage4_opcode = "0010" or
+      stage4_opcode = "0101") then
+    if ((stage5_opcode = "0100" or stage5_opcode = "0110") and
+        stage5_regwrite = '1' and stage4_regA2 = stage5_writeA3) then
+      nload5_read4_regA2 := '1';
+    else
+      nload5_read4_regA2 := '0';
+    end if;
+  else
+    nload5_read4_regA2 := '0';
+  end if;
+
+  if (reset = '1') then
+    load5_read4 <= '0';
+  else
+    load5_read4 <= nload5_read4_regA1 or nload5_read4_regA2;
+  end if;
+
 end process;
 
-process(input2, stage5, stage6, alu_out5, alu_out6, reset)
-  variable nip_forward2: std_logic := '0';
-  variable nip_forward_data2: std_logic_vector(15 downto 0) := (others => '0');
-  variable nforward3_2: std_logic := '0';
-  variable nforward3_data2: std_logic_vector(15 downto 0) := (others => '0');
+-- Process to resolve stage3 - stage6 conflicts
+process(stage3_signals, stage6_signals, stage6_data, reset)
+  variable stage3_opcode: std_logic_vector(3 downto 0);
+  variable stage3_regA1: std_logic_vector(2 downto 0);
+  variable stage3_regA2: std_logic_vector(2 downto 0);
+
+  variable stage6_writeA3: std_logic_vector(2 downto 0);
+  variable stage6_regwrite: std_logic;
+  variable stage6_r7write: std_logic;
+
+  variable nforward3_regA1: std_logic;
+  variable nforward3_regA2: std_logic;
+  variable nforward3_dataA1: std_logic_vector(15 downto 0);
+  variable nforward3_dataA2: std_logic_vector(15 downto 0);
+
 begin
+  stage3_opcode := stage3_signals(9 downto 6);
+  stage3_regA1 := stage3_signals(5 downto 3);
+  stage3_regA2 := stage3_signals(2 downto 0);
+  stage6_writeA3 := stage6_signals(2 downto 0);
+  stage6_regwrite := stage6_signals(4);
+  stage6_r7write := stage6_signals(3);
 
-  if (op_code4 = "0000" or op_code4 = "0010") then  
-    if (input2 = stage5 and reg_write5 = '1') then
-      nip_forward2 := '1';
-      nip_forward_data2 := alu_out5;
-    elsif (input2 = stage6 and reg_write6 = '1') then
-      nip_forward2 := '1';
-      nip_forward_data2 := alu_out6;
-    else
-      nip_forward2 := '0';
-      nip_forward_data2 := (others => '0');
-    end if;
-  else 
-    nip_forward2 := '0';
-    nip_forward_data2 := (others => '0');
-  end if;
+  nforward3_regA1 := '0';
+  nforward3_dataA1 := (others => '0');
+  nforward3_regA2 := '0';
+  nforward3_dataA2 := (others => '0');
 
-  if (op_code3 = "0000" or op_code3 = "0010") then  
-    if (ip2_frm3 = stage6 and reg_write6 = '1') then 
-      nforward3_2 := '1';
-      nforward3_data2 := alu_out6;
+  -- TODO :- BRANCH op_codes
+  -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW
+  if (stage3_opcode = "0000" or stage3_opcode = "0001" or
+      stage3_opcode = "0010" or stage3_opcode = "0100" or
+      stage3_opcode = "0101" or stage3_opcode = "0110") then
+
+    if (stage6_regwrite = '1' and stage3_regA1 = stage6_writeA3) then
+      nforward3_regA1 := '1';
+      nforward3_dataA1 := stage6_data(15 downto 0);
+    elsif (stage6_r7write = '1' and stage3_regA1 = "111") then
+      nforward3_regA1 := '1';
+      nforward3_dataA1 := stage6_data(31 downto 16);
     else
-      nforward3_2 := '0';
-      nforward3_data2 := (others => '0');
+      nforward3_regA1 := '0';
+      nforward3_dataA1 := (others => '0');
     end if;
-  else 
-    nforward3_2 := '0';
-    nforward3_data2 := (others => '0');
-  end if;
-  
-  if reset = '1' then
-    ip_forward_data2 <= (others => '0');
-    ip_forward2 <= '0';
-    forward3_2 <= '0';
-    forward3_data2 <= (others => '0');
   else
-    ip_forward_data2 <= nip_forward_data2;
-    ip_forward2 <= nip_forward2;
-    forward3_2 <= nforward3_2;
-    forward3_data2 <= nforward3_data2;
+    nforward3_regA1 := '0';
+    nforward3_dataA1 := (others => '0');
+  end if;
+
+  -- TODO :- BRANCH op_codes
+  -- Current opcodes include all ADDs, NDUs, SW
+  if (stage3_opcode = "0000" or stage3_opcode = "0010" or
+      stage3_opcode = "0101") then
+
+    if (stage6_regwrite = '1' and stage3_regA2 = stage6_writeA3) then
+      nforward3_regA2 := '1';
+      nforward3_dataA2 := stage6_data(15 downto 0);
+    elsif (stage6_r7write = '1' and stage3_regA2 = "111") then
+      nforward3_regA2 := '1';
+      nforward3_dataA2 := stage6_data(31 downto 16);
+    else
+      nforward3_regA2 := '0';
+      nforward3_dataA2 := (others => '0');
+    end if;
+  else
+    nforward3_regA2 := '0';
+    nforward3_dataA2 := (others => '0');
+  end if;
+
+  if (reset = '1') then
+    forward3_regA1 <= '0';
+    forward3_dataA1 <= (others => '0');
+    forward3_regA2 <= '0';
+    forward3_dataA2 <= (others => '0');
+  else
+    forward3_regA1 <= nforward3_regA1;
+    forward3_dataA1 <= nforward3_dataA1;
+    forward3_regA2 <= nforward3_regA2;
+    forward3_dataA2 <= nforward3_dataA2;
+  end if;
+
+end process;
+
+-- Process to resolve stage4 - stage5/stage6 conflicts for regA1
+process(stage4_signals, stage5_signals, stage6_signals, stage5_data, stage6_data, reset)
+  variable stage4_opcode: std_logic_vector(3 downto 0);
+  variable stage4_regA1: std_logic_vector(2 downto 0);
+  variable stage4_regA2: std_logic_vector(2 downto 0);
+
+  variable stage5_opcode: std_logic_vector(3 downto 0);
+  variable stage5_writeA3: std_logic_vector(2 downto 0);
+  variable stage5_regwrite: std_logic;
+  variable stage5_r7write: std_logic;
+
+  variable stage6_writeA3: std_logic_vector(2 downto 0);
+  variable stage6_regwrite: std_logic;
+  variable stage6_r7write: std_logic;
+
+  variable nforward4_regA1: std_logic;
+  variable nforward4_dataA1: std_logic_vector(15 downto 0);
+  variable nforward4_regA2: std_logic;
+  variable nforward4_dataA2: std_logic_vector(15 downto 0);
+begin
+  stage4_opcode := stage4_signals(9 downto 6);
+  stage4_regA1 := stage4_signals(5 downto 3);
+  stage4_regA2 := stage4_signals(2 downto 0);
+
+  stage5_regwrite := stage5_signals(8);
+  stage5_r7write := stage5_signals(7);
+  stage5_opcode := stage5_signals(6 downto 3);
+  stage5_writeA3 := stage5_signals(2 downto 0);
+
+  stage6_regwrite := stage6_signals(4);
+  stage6_r7write := stage6_signals(3);
+  stage6_writeA3 := stage6_signals(2 downto 0);
+
+  nforward4_regA1 := '0';
+  nforward4_dataA1 := (others => '0');
+  nforward4_regA2 := '0';
+  nforward4_dataA2 := (others => '0');
+
+  -- TODO :- BRANCH op_codes
+  -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW
+  if (stage4_opcode = "0000" or stage4_opcode = "0001" or
+      stage4_opcode = "0010" or stage4_opcode = "0100" or
+      stage4_opcode = "0101" or stage4_opcode = "0110") then
+
+    if (stage5_regwrite = '1' and stage4_regA1 = stage5_writeA3) then
+      nforward4_regA1 := '1';
+      nforward4_dataA1 := stage5_data(15 downto 0);
+    elsif (stage5_r7write = '1' and stage4_regA1 = "111") then
+      nforward4_regA1 := '1';
+      nforward4_dataA1 := stage5_data(31 downto 16);
+    elsif (stage6_regwrite = '1' and stage4_regA1 = stage6_writeA3) then
+      nforward4_regA1 := '1';
+      nforward4_dataA1 := stage6_data(15 downto 0);
+    elsif (stage6_r7write = '1' and stage4_regA1 = "111") then
+      nforward4_regA1 := '1';
+      nforward4_dataA1 := stage6_data(31 downto 16);
+    else
+      nforward4_regA1 := '0';
+      nforward4_dataA1 := (others => '0');
+    end if;
+  else
+    nforward4_regA1 := '0';
+    nforward4_dataA1 := (others => '0');
+  end if;
+
+  -- TODO :- BRANCH op_codes
+  -- Current opcodes include all ADDs, NDUs, SW
+  if (stage4_opcode = "0000" or stage4_opcode = "0010" or
+      stage4_opcode = "0101") then
+    if (stage5_regwrite = '1' and stage4_regA2 = stage5_writeA3) then
+      nforward4_regA2 := '1';
+      nforward4_dataA2 := stage5_data(15 downto 0);
+    elsif (stage5_r7write = '1' and stage4_regA2 = "111") then
+      nforward4_regA2 := '1';
+      nforward4_dataA2 := stage5_data(31 downto 16);
+    elsif (stage6_regwrite = '1' and stage4_regA2 = stage6_writeA3) then
+      nforward4_regA2 := '1';
+      nforward4_dataA2 := stage6_data(15 downto 0);
+    elsif (stage6_r7write = '1' and stage4_regA2 = "111") then
+      nforward4_regA2 := '1';
+      nforward4_dataA2 := stage6_data(31 downto 16);
+    else
+      nforward4_regA2 := '0';
+      nforward4_dataA2 := (others => '0');
+    end if;
+  else
+    nforward4_regA2 := '0';
+    nforward4_dataA2 := (others => '0');
+  end if;
+
+  if (reset = '1') then
+    forward4_regA1 <= '0';
+    forward4_dataA1 <= (others => '0');
+    forward4_regA2 <= '0';
+    forward4_dataA2 <= (others => '0');
+  else
+    forward4_regA1 <= nforward4_regA1;
+    forward4_dataA1 <= nforward4_dataA1;
+    forward4_regA2 <= nforward4_regA2;
+    forward4_dataA2 <= nforward4_dataA2;
   end if;
 end process;
 

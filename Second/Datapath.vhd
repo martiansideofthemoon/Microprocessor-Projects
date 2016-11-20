@@ -60,8 +60,8 @@ architecture Mixed of Datapath is
 ---------STAGE 3 - REGISTER READ-------------------
   signal DATA1: std_logic_vector(15 downto 0);
   signal DATA2: std_logic_vector(15 downto 0);
-  signal INP_ARG1: std_logic_vector(15 downto 0);
-  signal INP_ARG2: std_logic_vector(15 downto 0);
+  signal FINAL_DATA1: std_logic_vector(15 downto 0);
+  signal FINAL_DATA2: std_logic_vector(15 downto 0);
   signal SE6_OUT: std_logic_vector(15 downto 0);
   signal SE9_OUT: std_logic_vector(15 downto 0);
   signal ZERO_PAD9: std_logic_vector(15 downto 0);
@@ -77,23 +77,33 @@ architecture Mixed of Datapath is
   signal ALU1_IN: std_logic_vector(15 downto 0);
   signal ALU2_IN: std_logic_vector(15 downto 0);
   signal ALU_OUT: std_logic_vector(15 downto 0);
-  signal ip_forward_data1: std_logic_vector(15 downto 0);
-  signal ip_forward_data2: std_logic_vector(15 downto 0);
-  signal forward3_data1: std_logic_vector(15 downto 0);
-  signal forward3_data2: std_logic_vector(15 downto 0);
   signal FINAL_CARRY: std_logic_vector(0 downto 0);
   signal FINAL_ZERO: std_logic_vector(0 downto 0);
   signal ALU_carry: std_logic;
   signal ALU_zero: std_logic;
+---------------FLAG FORWARDING SIGNALS-------------
   signal carry_forward: std_logic;
   signal carry_forward_val: std_logic;
   signal zero_forward: std_logic;
   signal zero_forward_val: std_logic;
-  signal ip_forward1: std_logic;
-  signal ip_forward2: std_logic;
-  signal forward3_1: std_logic;
-  signal forward3_2: std_logic;
-  
+---------------DATA FORWARDING SIGNALS-------------
+  -- DataForwarding inputs
+  signal STAGE3_DF_SIGNALS: std_logic_vector(9 downto 0);
+  signal STAGE4_DF_SIGNALS: std_logic_vector(9 downto 0);
+  signal STAGE5_DF_SIGNALS: std_logic_vector(8 downto 0);
+  signal STAGE6_DF_SIGNALS: std_logic_vector(4 downto 0);
+  signal STAGE5_DF_DATA: std_logic_vector(31 downto 0);
+  signal STAGE6_DF_DATA: std_logic_vector(31 downto 0);
+  -- DataForwarding outputs
+  signal FORWARD3_DATA1: std_logic_vector(15 downto 0);
+  signal FORWARD3_DATA2: std_logic_vector(15 downto 0);
+  signal FORWARD4_DATA1: std_logic_vector(15 downto 0);
+  signal FORWARD4_DATA2: std_logic_vector(15 downto 0);
+  signal load5_read4: std_logic;
+  signal forward3_regA1: std_logic;
+  signal forward3_regA2: std_logic;
+  signal forward4_regA1: std_logic;
+  signal forward4_regA2: std_logic;
 ---------------------------------------------------
   signal p4_enable: std_logic;
   signal P4_IN: std_logic_vector(DecodeSize-1 downto 0);
@@ -102,7 +112,8 @@ architecture Mixed of Datapath is
   signal P4_DATA_OUT: std_logic_vector(47 downto 0);
   signal P4_FLAG_IN: std_logic_vector(1 downto 0);
   signal P4_FLAG_OUT: std_logic_vector(1 downto 0);
-  signal P4_kill: std_logic_vector(DecodeSize-1 downto 0);
+  signal P4_KILL: std_logic_vector(DecodeSize-1 downto 0);
+  signal P4_KILL_STALL: std_logic_vector(DecodeSize-1 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 5 - MEMORY STAGE--------------------
@@ -193,6 +204,7 @@ begin
       port map (
         instruction => P1_OUT(15 downto 0),
         pl_input_zero => pl_input_zero,
+        load5_read4 => load5_read4,
         pc_enable => pc_enable,
         p1_enable => p1_enable,
         p2_enable => p2_enable,
@@ -303,16 +315,16 @@ begin
        );
 
   P3_IN <= P2_OUT;
-  INP_ARG1 <= DATA1 when forward3_1 = '0' else forward3_data1;
-  INP_ARG2 <= DATA2 when forward3_2 = '0' else forward3_data2;
+  FINAL_DATA1 <= DATA1 when forward3_regA1 = '0' else FORWARD3_DATA1;
+  FINAL_DATA2 <= DATA2 when forward3_regA2 = '0' else FORWARD3_DATA2;
 
   -- Used for memory data input
-  P3_DATA_IN(63 downto 48) <= DATA2;
+  P3_DATA_IN(63 downto 48) <= FINAL_DATA2;
   P3_DATA_IN(47 downto 32) <= P2_DATA_OUT(15 downto 0);
-  P3_DATA_IN(31 downto 16) <= INP_ARG1 when P2_OUT(27 downto 26) = "00" else
+  P3_DATA_IN(31 downto 16) <= FINAL_DATA1 when P2_OUT(27 downto 26) = "00" else
                               CONST_0;
   P3_DATA_IN(15 downto 0) <= SE6_OUT when P2_OUT(25 downto 24) = "01" else
-                             INP_ARG2 when P2_OUT(25 downto 24) = "00" else
+                             FINAL_DATA2 when P2_OUT(25 downto 24) = "00" else
                              ZERO_PAD9 when P2_OUT(25 downto 24) = "10" else
                              P2_DATA_OUT(31 downto 16) when P2_OUT(25 downto 24) = "11";
 ----------------------------------------------------
@@ -337,8 +349,8 @@ begin
 
 ---------------------------------------------------
 ---------STAGE 4 - EXECUTE STAGE-------------------
-  ALU1_IN <= P3_DATA_OUT(31 downto 16) when ip_forward1 = '0' else ip_forward_data1;
-  ALU2_IN <= P3_DATA_OUT(15 downto 0) when ip_forward2 = '0' else ip_forward_data2;
+  ALU1_IN <= P3_DATA_OUT(31 downto 16) when forward4_regA1 = '0' else FORWARD4_DATA1;
+  ALU2_IN <= P3_DATA_OUT(15 downto 0) when forward4_regA2 = '0' else FORWARD4_DATA2;
   AL: ALU
       port map (
         alu_in_1 => ALU1_IN,
@@ -366,44 +378,89 @@ begin
         zero_val => zero_forward_val,
         reset => reset
       );
+  -- stage3 opcode --> 9 downto 6
+  STAGE3_DF_SIGNALS(9 downto 6) <= P2_OUT(31 downto 28);
+  -- stage3 regA1 --> 5 downto 3
+  STAGE3_DF_SIGNALS(5 downto 3) <= P2_OUT(5 downto 3);
+  -- stage3 regA2 --> 2 downto 0
+  STAGE3_DF_SIGNALS(2 downto 0) <= P2_OUT(2 downto 0);
 
-  DF: DataForwarding
-      port map (
-    input1 => P3_OUT(5 downto 3),
-    input2 => P3_OUT(2 downto 0),
-    ip1_frm3 => P3_IN(5 downto 3),
-    ip2_frm3 => P3_IN(2 downto 0),
-    alu_out5 => P4_DATA_OUT(15 downto 0),
-    op_code4 => P3_OUT(31 downto 28),
-    op_code3 => P2_OUT(31 downto 28),
-    stage5 => P4_OUT(13 downto 11),
-    stage6 => P5_OUT(13 downto 11),
-    alu_out6 => REGDATA_IN,
-    ip_forward1 => ip_forward1,
-    ip_forward2 => ip_forward2,
-    ip_forward_data1 => ip_forward_data1,
-    ip_forward_data2 => ip_forward_data2,
-    forward3_1 => forward3_1,
-    forward3_2 => forward3_2,
-    forward3_data1 => forward3_data1,
-    forward3_data2 => forward3_data2,
-    reg_write5 => P5_IN(8),
-    reg_write6 => P5_OUT(8),
-    reset => reset
-    );
+  -- stage4 opcode --> 9 downto 6
+  STAGE4_DF_SIGNALS(9 downto 6) <= P3_OUT(31 downto 28);
+  -- stage4 regA1 --> 5 downto 3
+  STAGE4_DF_SIGNALS(5 downto 3) <= P3_OUT(5 downto 3);
+  -- stage4 regA2 --> 2 downto 0
+  STAGE4_DF_SIGNALS(2 downto 0) <= P3_OUT(2 downto 0);
+
+  -- stage5 reg_write --> 8
+  STAGE5_DF_SIGNALS(8) <= P4_OUT(8);
+  -- stage5 r7_write --> 7
+  STAGE5_DF_SIGNALS(7) <= P4_OUT(14);
+  -- stage5 opcode --> 6 downto 3
+  STAGE5_DF_SIGNALS(6 downto 3) <= P4_OUT(31 downto 28);
+  -- stage5 writeA3 --> 2 downto 0
+  STAGE5_DF_SIGNALS(2 downto 0) <= P4_OUT(13 downto 11);
+
+  -- stage5 r7_data --> 31 downto 16
+  STAGE5_DF_DATA(31 downto 16) <= P4_DATA_OUT(31 downto 16);
+  -- stage5 regdata_in --> 15 downto 0
+  STAGE5_DF_DATA(15 downto 0) <= P4_DATA_OUT(15 downto 0);
+
+  -- stage6 reg_write --> 4
+  STAGE6_DF_SIGNALS(4) <= P5_OUT(8);
+  -- stage6 r7_write --> 3
+  STAGE6_DF_SIGNALS(3) <= P5_OUT(14);
+  -- stage6 writeA3 --> 2 downto 0
+  STAGE6_DF_SIGNALS(2 downto 0) <= P5_OUT(13 downto 11);
+
+  -- stage6 r7_data --> 31 downto 16
+  STAGE6_DF_DATA(31 downto 16) <= P5_DATA_OUT(47 downto 32);
+  -- stage6 regdata_in --> 15 downto 0
+  STAGE6_DF_DATA(15 downto 0) <= REGDATA_IN(15 downto 0);
+
+DF: DataForwarding
+    port map (
+      stage3_signals => STAGE3_DF_SIGNALS,
+      stage4_signals => STAGE4_DF_SIGNALS,
+      stage5_signals => STAGE5_DF_SIGNALS,
+      stage5_data => STAGE5_DF_DATA,
+      stage6_signals => STAGE6_DF_SIGNALS,
+      stage6_data => STAGE6_DF_DATA,
+    -- Load Distress Signal
+      load5_read4 => load5_read4,
+    -- Forward to Stage 3
+      forward3_regA1 => forward3_regA1,
+      forward3_regA2 => forward3_regA2,
+      forward3_dataA1 => FORWARD3_DATA1,
+      forward3_dataA2 => FORWARD3_DATA2,
+    -- Forward to Stage 4
+      forward4_regA1 => forward4_regA1,
+      forward4_regA2 => forward4_regA2,
+      forward4_dataA1 => FORWARD4_DATA1,
+      forward4_dataA2 => FORWARD4_DATA2,
+    -- Reset Signal
+      reset => reset
+  );
+
   Kill: KillInstruction
       port map (
         Decode_in => P3_OUT,
-        Decode_out => P4_kill
+        Decode_out => P4_KILL
+        );
+  Kill2: KillSTallInstruction
+      port map (
+        Decode_in => P3_OUT,
+        Decode_out => P4_KILL_STALL
         );
 
   FINAL_CARRY(0) <= carry_forward_val when carry_forward = '1' else CARRY(0);
   FINAL_ZERO(0) <= zero_forward_val when zero_forward = '1' else ZERO(0);
 
-  P4_IN <= P4_kill when P3_OUT(34) = '1' and FINAL_CARRY(0) = '0' else
-           P4_kill when P3_OUT(35) = '1' and FINAL_ZERO(0) = '0' else
+  P4_IN <= P4_KILL when P3_OUT(34) = '1' and FINAL_CARRY(0) = '0' else
+           P4_KILL when P3_OUT(35) = '1' and FINAL_ZERO(0) = '0' else
+           P4_KILL_STALL when load5_read4 = '1' else
            P3_OUT;
-  P4_DATA_IN(47 downto 32) <= P3_DATA_OUT(63 downto 48);
+  P4_DATA_IN(47 downto 32) <= P3_DATA_OUT(63 downto 48) when forward4_regA2 = '0' else FORWARD4_DATA2;
   P4_DATA_IN(31 downto 16) <= P3_DATA_OUT(47 downto 32);
   P4_DATA_IN(15 downto 0) <= ALU_OUT;
   P4_FLAG_IN(1) <= ALU_carry;
