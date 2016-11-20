@@ -65,6 +65,8 @@ architecture Mixed of Datapath is
   signal ALU1_IN: std_logic_vector(15 downto 0);
   signal ALU2_IN: std_logic_vector(15 downto 0);
   signal ALU_OUT: std_logic_vector(15 downto 0);
+  signal ip_forward_data1: std_logic_vector(15 downto 0);
+  signal ip_forward_data2: std_logic_vector(15 downto 0);
   signal FINAL_CARRY: std_logic_vector(0 downto 0);
   signal FINAL_ZERO: std_logic_vector(0 downto 0);
   signal ALU_carry: std_logic;
@@ -73,6 +75,9 @@ architecture Mixed of Datapath is
   signal carry_forward_val: std_logic;
   signal zero_forward: std_logic;
   signal zero_forward_val: std_logic;
+  signal ip_forward1: std_logic;
+  signal ip_forward2: std_logic;
+  
 ---------------------------------------------------
   signal P4_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P4_OUT: std_logic_vector(DecodeSize-1 downto 0);
@@ -266,8 +271,8 @@ begin
 
 ---------------------------------------------------
 ---------STAGE 4 - EXECUTE STAGE-------------------
-  ALU1_IN <= P3_DATA_OUT(31 downto 16);
-  ALU2_IN <= P3_DATA_OUT(15 downto 0);
+  ALU1_IN <= P3_DATA_OUT(31 downto 16) when ip_forward1 = '0' else ip_forward_data1;
+  ALU2_IN <= P3_DATA_OUT(15 downto 0) when ip_forward2 = '0' else ip_forward_data2;
   AL: ALU
       port map (
         alu_in_1 => ALU1_IN,
@@ -295,6 +300,22 @@ begin
         zero_val => zero_forward_val,
         reset => reset
       );
+
+  DF: DataForwarding
+      port map (
+    input1 => P3_OUT(5 downto 3),
+    input2 => P3_OUT(2 downto 0),
+    alu_out5 => P4_DATA_OUT(15 downto 0),
+    op_code => P3_DATA_OUT(47 downto 44),
+    output5 => P4_OUT(13 downto 11),
+    output6 => P5_OUT(13 downto 11),
+    alu_out6 => P5_DATA_OUT(15 downto 0),
+    ip_forward1 => ip_forward1,
+    ip_forward2 => ip_forward2,
+    ip_forward_data1 => ip_forward_data1,
+    ip_forward_data2 => ip_forward_data2,
+    reset => reset
+    );
   Kill: KillInstruction
       port map (
         Decode_in => P3_OUT,
