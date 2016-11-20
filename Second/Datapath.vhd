@@ -57,6 +57,8 @@ architecture Mixed of Datapath is
 ---------STAGE 3 - REGISTER READ-------------------
   signal DATA1: std_logic_vector(15 downto 0);
   signal DATA2: std_logic_vector(15 downto 0);
+  signal INP_ARG1: std_logic_vector(15 downto 0);
+  signal INP_ARG2: std_logic_vector(15 downto 0);
   signal SE6_OUT: std_logic_vector(15 downto 0);
   signal SE9_OUT: std_logic_vector(15 downto 0);
   signal ZERO_PAD9: std_logic_vector(15 downto 0);
@@ -73,6 +75,8 @@ architecture Mixed of Datapath is
   signal ALU_OUT: std_logic_vector(15 downto 0);
   signal ip_forward_data1: std_logic_vector(15 downto 0);
   signal ip_forward_data2: std_logic_vector(15 downto 0);
+  signal forward3_data1: std_logic_vector(15 downto 0);
+  signal forward3_data2: std_logic_vector(15 downto 0);
   signal FINAL_CARRY: std_logic_vector(0 downto 0);
   signal FINAL_ZERO: std_logic_vector(0 downto 0);
   signal ALU_carry: std_logic;
@@ -83,6 +87,8 @@ architecture Mixed of Datapath is
   signal zero_forward_val: std_logic;
   signal ip_forward1: std_logic;
   signal ip_forward2: std_logic;
+  signal forward3_1: std_logic;
+  signal forward3_2: std_logic;
   
 ---------------------------------------------------
   signal P4_IN: std_logic_vector(DecodeSize-1 downto 0);
@@ -280,13 +286,16 @@ begin
        );
 
   P3_IN <= P2_OUT;
+  INP_ARG1 <= DATA1 when forward3_1 = '0' else forward3_data1;
+  INP_ARG2 <= DATA2 when forward3_2 = '0' else forward3_data2;
+
   -- Used for memory data input
   P3_DATA_IN(63 downto 48) <= DATA2;
   P3_DATA_IN(47 downto 32) <= P2_DATA_OUT(15 downto 0);
-  P3_DATA_IN(31 downto 16) <= DATA1 when P2_OUT(27 downto 26) = "00" else
+  P3_DATA_IN(31 downto 16) <= INP_ARG1 when P2_OUT(27 downto 26) = "00" else
                               CONST_0;
   P3_DATA_IN(15 downto 0) <= SE6_OUT when P2_OUT(25 downto 24) = "01" else
-                             DATA2 when P2_OUT(25 downto 24) = "00" else
+                             INP_ARG2 when P2_OUT(25 downto 24) = "00" else
                              ZERO_PAD9 when P2_OUT(25 downto 24) = "10" else
                              P2_DATA_OUT(31 downto 16) when P2_OUT(25 downto 24) = "11";
 ----------------------------------------------------
@@ -345,15 +354,24 @@ begin
       port map (
     input1 => P3_OUT(5 downto 3),
     input2 => P3_OUT(2 downto 0),
+    ip1_frm3 => P3_IN(5 downto 3),
+    ip2_frm3 => P3_IN(2 downto 0),
     alu_out5 => P4_DATA_OUT(15 downto 0),
-    op_code => P3_DATA_OUT(47 downto 44),
+    op_code4 => P3_OUT(31 downto 28),
+    op_code3 => P2_OUT(31 downto 28),
     stage5 => P4_OUT(13 downto 11),
     stage6 => P5_OUT(13 downto 11),
-    alu_out6 => P5_DATA_OUT(15 downto 0),
+    alu_out6 => REGDATA_IN,
     ip_forward1 => ip_forward1,
     ip_forward2 => ip_forward2,
     ip_forward_data1 => ip_forward_data1,
     ip_forward_data2 => ip_forward_data2,
+    forward3_1 => forward3_1,
+    forward3_2 => forward3_2,
+    forward3_data1 => forward3_data1,
+    forward3_data2 => forward3_data2,
+    reg_write5 => P5_IN(8),
+    reg_write6 => P5_OUT(8),
     reset => reset
     );
   Kill: KillInstruction

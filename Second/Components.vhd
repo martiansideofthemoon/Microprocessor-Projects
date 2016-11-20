@@ -198,15 +198,24 @@ package ProcessorComponents is
   port (
     input1: in std_logic_vector(2 downto 0);
     input2: in std_logic_vector(2 downto 0);
+    ip1_frm3: in std_logic_vector(2 downto 0);
+    ip2_frm3: in std_logic_vector(2 downto 0);
     alu_out5: in std_logic_vector(15 downto 0);
-    op_code: in std_logic_vector(3 downto 0);
+    op_code4: in std_logic_vector(3 downto 0);
+    op_code3: in std_logic_vector(3 downto 0);
     stage5: in std_logic_vector(2 downto 0);
     stage6: in std_logic_vector(2 downto 0);
     alu_out6: in std_logic_vector(15 downto 0);
+    reg_write5: in std_logic;
+    reg_write6: in std_logic;
     ip_forward1: out std_logic;
     ip_forward2: out std_logic;
     ip_forward_data1: out std_logic_vector(15 downto 0);
     ip_forward_data2: out std_logic_vector(15 downto 0);
+    forward3_1: out std_logic;
+    forward3_2: out std_logic;
+    forward3_data1: out std_logic_vector(15 downto 0);
+    forward3_data2: out std_logic_vector(15 downto 0);
     reset: in std_logic
   );
   end component DataForwarding;
