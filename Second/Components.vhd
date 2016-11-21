@@ -268,17 +268,22 @@ package ProcessorComponents is
       reset: in std_logic
     );
   end component RegisterControl;
-  
-  component Cache
-  port( 
-      pc_target: out  std_logic_vector(15 downto 0);
-      pc_in: in  std_logic_vector(15 downto 0);
-      hit: out std_logic;
-      reset: in std_logic;
-      cache_write: in std_logic;
-      cache_pc: in std_logic;
-      cache_write_data: in std_logic_vector(15 downto 0) 
-      );  
+
+  component Cache is
+  port(
+    -- Read signals
+    target_address: out  std_logic_vector(15 downto 0);
+    target_history: out std_logic;
+    target_pc: in  std_logic_vector(15 downto 0);
+    target_hit: out std_logic;
+    clk: in std_logic;
+    reset: in std_logic;
+    -- Write signals
+    write_pc: in std_logic_vector(15 downto 0);
+    write_address: in std_logic_vector(15 downto 0);
+    write_history: in std_logic;
+    cache_write: in std_logic
+  );
   end component Cache;
 end package;
 

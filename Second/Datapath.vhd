@@ -31,11 +31,14 @@ architecture Mixed of Datapath is
   signal PC_OUT: std_logic_vector(15 downto 0);
   signal PC_INCREMENT: std_logic_vector(15 downto 0);
   signal INST_MEMORY: std_logic_vector(15 downto 0);
+  signal CACHE_NEXT_PC: std_logic_vector(15 downto 0);
   signal pc_enable: std_logic;
+  signal pc_hit: std_logic;
+  signal pc_history: std_logic;
 ---------------------------------------------------
   signal p1_enable: std_logic;
-  signal P1_IN: std_logic_vector(31 downto 0);
-  signal P1_OUT: std_logic_vector(31 downto 0);
+  signal P1_IN: std_logic_vector(49 downto 0);
+  signal P1_OUT: std_logic_vector(49 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 2 - INSTRUCTION DECODE--------------
@@ -146,6 +149,11 @@ architecture Mixed of Datapath is
   signal CARRY: std_logic_vector(0 downto 0);
   signal ZERO: std_logic_vector(0 downto 0);
 
+  signal CACHE_WRITE_PC: std_logic_vector(15 downto 0);
+  signal CACHE_WRITE_ADDR: std_logic_vector(15 downto 0);
+  signal cache_write_history: std_logic;
+  signal cache_write: std_logic;
+
 begin
 ---------------------------------------------------
 ---------STAGE 1 - INSTRUCTION FETCH---------------
@@ -176,14 +184,37 @@ begin
         input => PC_OUT,
         output => LSHIFT_PC_OUT
       );
+  CS: Cache
+      port map (
+      -- Read signals
+      target_address => CACHE_NEXT_PC,
+      target_history => pc_history,
+      target_pc => PC_OUT,
+      target_hit => pc_hit,
+      clk => clk,
+      reset => reset,
+      -- Write signals
+      write_pc => CACHE_WRITE_PC,
+      write_address => CACHE_WRITE_ADDR,
+      write_history => cache_write_history,
+      cache_write => cache_write
+    );
 
-  PC_IN <= PC_INCREMENT when reset = '0' else (others => '0');
+
+  PC_IN <= (others => '0') when reset = '1' else
+           PC_INCREMENT when pc_hit = '0' else
+           PC_INCREMENT when pc_hit = '1' and pc_history = '0' else
+           CACHE_NEXT_PC when pc_hit = '1' and pc_history = '1' else
+           (others => '0');
 
   P1_IN(15 downto 0) <= INST_MEMORY when reset = '0' else (others => '1');
   P1_IN(31 downto 16) <= PC_IN;
+  P1_IN(47 downto 32) <= PC_OUT;
+  P1_IN(48) <= pc_history;
+  P1_IN(49) <= pc_hit;
 ----------------------------------------------------
   P1: DataRegister
-      generic map (data_width => 32)
+      generic map (data_width => 50)
       port map (
         Din => P1_IN,
         Dout => P1_OUT,
