@@ -268,7 +268,18 @@ package ProcessorComponents is
       reset: in std_logic
     );
   end component RegisterControl;
-
+  
+  component Cache
+  port( 
+      pc_target: out  std_logic_vector(15 downto 0);
+      pc_in: in  std_logic_vector(15 downto 0);
+      hit: out std_logic;
+      reset: in std_logic;
+      cache_write: in std_logic;
+      cache_pc: in std_logic;
+      cache_write_data: in std_logic_vector(15 downto 0) 
+      );  
+  end component Cache;
 end package;
 
 library ieee;
