@@ -43,6 +43,7 @@ architecture Mixed of Datapath is
 ---------------------------------------------------
 ---------STAGE 2 - INSTRUCTION DECODE--------------
   signal INST_DECODE: std_logic_vector(DecodeSize-1 downto 0) := (others => '0');
+  signal INST_JUMP_DECODE: std_logic_vector(3 downto 0) := (others => '0');
   signal pl_input_zero: std_logic;
   signal LM_SM:std_logic;
   signal priority_select_in: std_logic;
@@ -58,6 +59,8 @@ architecture Mixed of Datapath is
   signal P2_OUT: std_logic_vector(DecodeSize-1 downto 0);
   signal P2_DATA_IN: std_logic_vector(31 downto 0);
   signal P2_DATA_OUT: std_logic_vector(31 downto 0);
+  signal P2_JUMP_DATA_IN: std_logic_vector(21 downto 0);
+  signal P2_JUMP_DATA: std_logic_vector(21 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 3 - REGISTER READ-------------------
@@ -74,6 +77,8 @@ architecture Mixed of Datapath is
   signal P3_OUT: std_logic_vector(DecodeSize-1 downto 0);
   signal P3_DATA_IN: std_logic_vector(63 downto 0);
   signal P3_DATA_OUT: std_logic_vector(63 downto 0);
+  signal P3_JUMP_DATA_IN: std_logic_vector(21 downto 0);
+  signal P3_JUMP_DATA: std_logic_vector(21 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 4 - EXECUTE STAGE-------------------
@@ -199,6 +204,22 @@ begin
       write_history => cache_write_history,
       cache_write => cache_write
     );
+  PCF: PCForwarding is
+    port map (
+    pc_stage3: in std_logic_vector(15 downto 0);
+    pc_stage4: in std_logic_vector(15 downto 0);
+    pc_stage5: in std_logic_vector(15 downto 0);
+    pc_stage3_flag: in std_logic;
+    pc_stage4_flag: in std_logic;
+    pc_stage5_flag: in std_logic;
+    pc_forwarding_out: out std_logic_vector(15 downto 0);
+    pc_forwarding: out std_logic;
+    kill1: out std_logic;
+    kill2: out std_logic;
+    kill3: out std_logic;
+    kill4: out std_logic;
+    reset: in std_logic
+  );
 
 
   PC_IN <= (others => '0') when reset = '1' else
@@ -229,6 +250,7 @@ begin
       port map (
         instruction => P1_OUT(15 downto 0),
         output => INST_DECODE,
+        jump_output => INST_JUMP_DECODE,
         reset => reset
       );
   RC: RegisterControl
@@ -284,6 +306,8 @@ begin
            P2_IN_DUMMY;
   P2_DATA_IN(15 downto 0) <= P1_OUT(31 downto 16);
   P2_DATA_IN(31 downto 16) <= PL_OFFSET;
+  P2_JUMP_DATA_IN(17 downto 0) <= P1_OUT(49 downto 32);
+  P2_JUMP_DATA_IN(21 downto 18) <= INST_JUMP_DECODE(3 downto 0);
 
 ---------------------------------------------------
   P2: DataRegister
@@ -300,6 +324,15 @@ begin
       port map (
         Din => P2_DATA_IN,
         Dout => P2_DATA_OUT,
+        Enable => p2_enable,
+        clk => clk,
+        reset => reset
+      );
+  P2_jump: DataRegister
+      generic map(data_width => 22)
+      port map (
+        Din => P2_JUMP_DATA_IN,
+        Dout => P2_JUMP_DATA,
         Enable => p2_enable,
         clk => clk,
         reset => reset
@@ -358,6 +391,7 @@ begin
                              FINAL_DATA2 when P2_OUT(25 downto 24) = "00" else
                              ZERO_PAD9 when P2_OUT(25 downto 24) = "10" else
                              P2_DATA_OUT(31 downto 16) when P2_OUT(25 downto 24) = "11";
+  P3_JUMP_DATA_IN(21 downto 0) <= P2_JUMP_DATA;
 ----------------------------------------------------
   P3: DataRegister
       generic map (data_width => DecodeSize)
@@ -373,6 +407,15 @@ begin
       port map (
         Din => P3_DATA_IN,
         Dout => P3_DATA_OUT,
+        Enable => p3_enable,
+        clk => clk,
+        reset => reset
+      );
+  P3_jump: DataRegister
+      generic map(data_width => 22)
+      port map (
+        Din => P3_JUMP_DATA_IN,
+        Dout => P3_JUMP_DATA,
         Enable => p3_enable,
         clk => clk,
         reset => reset
@@ -478,7 +521,7 @@ DF: DataForwarding
         Decode_in => P3_OUT,
         Decode_out => P4_KILL
         );
-  Kill2: KillSTallInstruction
+  Kill2: KillStallInstruction
       port map (
         Decode_in => P3_OUT,
         Decode_out => P4_KILL_STALL
@@ -496,6 +539,8 @@ DF: DataForwarding
   P4_DATA_IN(15 downto 0) <= ALU_OUT;
   P4_FLAG_IN(1) <= ALU_carry;
   P4_FLAG_IN(0) <= ALU_zero;
+
+  
 ----------------------------------------------------
   P4: DataRegister
       generic map (data_width => DecodeSize)

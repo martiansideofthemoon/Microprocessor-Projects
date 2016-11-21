@@ -162,6 +162,7 @@ package ProcessorComponents is
   port (
     instruction: in std_logic_vector(15 downto 0);
     output: out std_logic_vector(DecodeSize-1 downto 0);
+    jump_output: out std_logic_vector(3 downto 0);
     reset: in std_logic
   );
   end component;
@@ -294,7 +295,7 @@ package ProcessorComponents is
     pc_stage3_flag: in std_logic;
     pc_stage4_flag: in std_logic;
     pc_stage5_flag: in std_logic;
-    pc_forwarding_out: out std_logic_vector(15 downto 0);  
+    pc_forwarding_out: out std_logic_vector(15 downto 0);
     pc_forwarding: out std_logic;
     kill1 : out std_logic;
     kill2 : out std_logic;
@@ -303,6 +304,23 @@ package ProcessorComponents is
     reset: in std_logic
   );
   end component PCForwarding;
+
+  component JumpExecuteStage is
+    port (
+      op_code: in std_logic_vector(3 downto 0);
+      carry_logic: in std_logic_vector(1 downto 0);
+      cache_data: in std_logic_vector(21 downto 0);
+      cache_prediction: in std_logic_vector(15 downto 0);
+      alu_output: in std_logic_vector(15 downto 0);
+      flag_condition: in std_logic;
+      reset: in std_logic;
+      jump: out std_logic;
+      jump_address: out std_logic_vector(15 downto 0);
+      cache_write: out std_logic;
+      cache_history: out std_logic;
+      cache_addr: out std_logic_vector(15 downto 0)
+    );
+  end component;
 
 end package;
 

@@ -6,6 +6,7 @@ entity InstructionDecoder is
   port (
     instruction: in std_logic_vector(15 downto 0);
     output: out std_logic_vector(DecodeSize-1 downto 0);
+    jump_output: out std_logic_vector(3 downto 0);
     reset: in std_logic
   );
 end entity InstructionDecoder;
@@ -30,6 +31,8 @@ signal immediate: std_logic_vector(8 downto 0);
 signal reg_write_select: std_logic_vector(1 downto 0);
 signal carry_check: std_logic;
 signal zero_check: std_logic;
+signal is_jump: std_logic;
+signal jump_stage: std_logic_vector(2 downto 0) := "000";
 begin
   op_code <= instruction(15 downto 12);
   carry_logic <= instruction(1 downto 0);
@@ -52,6 +55,9 @@ begin
   output(34) <= carry_check;
   output(35) <= zero_check;
 
+  is_jump <= pc_updated;
+  jump_output(0) <= is_jump;
+  jump_output(3 downto 1) <= jump_stage(2 downto 0);
 
   process(instruction, op_code, carry_logic)
     variable npc_updated: std_logic := '0';
@@ -104,6 +110,7 @@ begin
       set_carry <= '1';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
+      jump_stage <= "100";
     elsif (reset = '0' and op_code = "0000" and carry_logic = "10") then
       -- Generic ADC type instruction
       -- Signals for Register Read stage
@@ -124,6 +131,7 @@ begin
       set_carry <= '1';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
+      jump_stage <= "100";
     elsif (reset = '0' and op_code = "0000" and carry_logic = "01") then
       -- Generic ADZ type instruction
       -- Signals for Register Read stage
@@ -144,6 +152,7 @@ begin
       set_carry <= '1';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
+      jump_stage <= "100";
     elsif (reset = '0' and op_code = "0010" and carry_logic = "00") then
       -- Generic NDU type instruction
       -- Signals for Register Read stage
@@ -164,6 +173,7 @@ begin
       set_carry <= '0';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
+      jump_stage <= "100";
     elsif (reset = '0' and op_code = "0010" and carry_logic = "10") then
       -- Generic NDC type instruction
       -- Signals for Register Read stage
@@ -184,6 +194,7 @@ begin
       set_carry <= '0';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
+      jump_stage <= "100";
     elsif (reset = '0' and op_code = "0010" and carry_logic = "01") then
       -- Generic NDZ type instruction
       -- Signals for Register Read stage
@@ -204,6 +215,7 @@ begin
       set_carry <= '0';
       set_zero <= '1';
       reg_A3 <= instruction(5 downto 3);
+      jump_stage <= "100";
     elsif (reset = '0' and op_code = "0001") then
       -- Generic ADI instruction
       -- Signals for Register Read stage
@@ -224,6 +236,7 @@ begin
       set_carry <= '1';
       set_zero <= '1';
       reg_A3 <= instruction(8 downto 6);
+      jump_stage <= "100";
     elsif (reset = '0' and op_code = "0011") then
       -- Generic LHI instruction
       -- Signals for Register Read stage
@@ -244,6 +257,7 @@ begin
       set_carry <= '0';
       set_zero <= '0';
       reg_A3 <= instruction(11 downto 9);
+      jump_stage <= "100";
     elsif (reset = '0' and op_code = "0100") then
       -- Generic LW instruction
       -- Signals for Register Read stage
@@ -264,6 +278,7 @@ begin
       set_carry <= '0';
       set_zero <= '1';
       reg_A3 <= instruction(11 downto 9);
+      jump_stage <= "101";
     elsif (reset = '0' and op_code = "0101") then
       -- Generic SW instruction
       -- Signals for Register Read stage
@@ -284,6 +299,7 @@ begin
       set_carry <= '0';
       set_zero <= '0';
       reg_A3 <= instruction(11 downto 9);
+      jump_stage <= "000";
     elsif (reset = '0' and op_code = "0110") then
       -- Generic LM instruction
       -- Signals for Register Read stage
@@ -304,6 +320,7 @@ begin
       set_carry <= '0';
       set_zero <= '0';
       reg_A3 <= "000";
+      jump_stage <= "101";
     elsif (reset = '0' and op_code = "0111") then
       -- Generic SM instruction
       -- Signals for Register Read stage
@@ -324,6 +341,7 @@ begin
       set_carry <= '0';
       set_zero <= '0';
       reg_A3 <= "000";
+      jump_stage <= "000";
     else
       -- Signals for Register Read stage
       reg_A1 <= "000";
@@ -343,6 +361,7 @@ begin
       set_carry <= '0';
       set_zero <= '0';
       reg_A3 <= "000";
+      jump_stage <= "000";
     end if;
   end process;
 end Struct;

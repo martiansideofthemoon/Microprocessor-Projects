@@ -10,7 +10,7 @@ entity PCForwarding is
     pc_stage3_flag: in std_logic;
     pc_stage4_flag: in std_logic;
     pc_stage5_flag: in std_logic;
-    pc_forwarding_out: out std_logic_vector(15 downto 0);  
+    pc_forwarding_out: out std_logic_vector(15 downto 0);
     pc_forwarding: out std_logic;
     kill1 : out std_logic;
     kill2 : out std_logic;
@@ -22,7 +22,7 @@ end entity PCForwarding;
 
 architecture Struct of PCForwarding is
 begin
-process(pc_stage5, pc_stage4, pc_stage3, pc_stage5, pc_stage4, pc_stage3, reset)
+process(pc_stage5, pc_stage4, pc_stage3, pc_stage5_flag, pc_stage4_flag, pc_stage3_flag, reset)
   variable npc_forwarding_out: std_logic_vector(15 downto 0) := (others => '0');
   variable npc_forwarding: std_logic := '0';
   variable nkill1: std_logic := '0';

@@ -59,7 +59,7 @@ begin
 end process;
 
 -- Process to decide HIT / MISS and to return HIT value if any
-process (comparisons, last_used, cache_array, clk, active_read_entry) is
+process (comparisons, last_used, cache_array, clk, active_read_entry, reset) is
   variable nhit: std_logic := '0';
   variable nhistory: std_logic;
   variable nlast_used: std_logic_vector(3 downto 0) := "0000";
