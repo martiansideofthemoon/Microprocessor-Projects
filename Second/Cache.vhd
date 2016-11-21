@@ -109,7 +109,7 @@ GenerateLabel2: for i in cache_array'range generate
 end generate;
 
 GenerateLabel3: for i in cache_array'range generate
-  free_slots(i) <= '1' when cache_array(i)(33) = '1' else '0';
+  free_slots(i) <= '1' when cache_array(i)(33) = '0' else '0';
 end generate;
 
 -- Process acts like a priority encoder of write_comparisons

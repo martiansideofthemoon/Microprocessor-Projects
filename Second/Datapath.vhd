@@ -35,6 +35,9 @@ architecture Mixed of Datapath is
   signal pc_enable: std_logic;
   signal pc_hit: std_logic;
   signal pc_history: std_logic;
+  signal kill_stage1: std_logic;
+  signal pc_branch_forward: std_logic;
+  signal PC_BRANCH_ADDRESS: std_logic_vector(15 downto 0);
 ---------------------------------------------------
   signal p1_enable: std_logic;
   signal P1_IN: std_logic_vector(49 downto 0);
@@ -51,16 +54,21 @@ architecture Mixed of Datapath is
   signal LM_INST_DECODE:std_logic_vector(DecodeSize-1 downto 0);
   signal SM_INST_DECODE:std_logic_vector(DecodeSize-1 downto 0);
   signal PL_OFFSET: std_logic_vector(15 downto 0);
+  signal kill_stage2: std_logic;
 ---------------------------------------------------
   signal p2_enable: std_logic;
   signal P2_IN_DUMMY:std_logic_vector(DecodeSize-1 downto 0);
   signal P2_kill:std_logic_vector(DecodeSize-1 downto 0);
+  signal P2_STALL_KILL: std_logic_vector(DecodeSize-1 downto 0);
   signal P2_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P2_OUT: std_logic_vector(DecodeSize-1 downto 0);
   signal P2_DATA_IN: std_logic_vector(31 downto 0);
   signal P2_DATA_OUT: std_logic_vector(31 downto 0);
   signal P2_JUMP_DATA_IN: std_logic_vector(21 downto 0);
   signal P2_JUMP_DATA: std_logic_vector(21 downto 0);
+  signal P2_CACHE_DATA_IN: std_logic_vector(17 downto 0);
+  signal P2_CACHE_DATA: std_logic_vector(17 downto 0);
+
 
 ---------------------------------------------------
 ---------STAGE 3 - REGISTER READ-------------------
@@ -71,6 +79,9 @@ architecture Mixed of Datapath is
   signal SE6_OUT: std_logic_vector(15 downto 0);
   signal SE9_OUT: std_logic_vector(15 downto 0);
   signal ZERO_PAD9: std_logic_vector(15 downto 0);
+  signal kill_stage3: std_logic;
+  signal jump_stage3: std_logic;
+  signal JUMP_STAGE3_ADDR: std_logic_vector(15 downto 0);
 ---------------------------------------------------
   signal p3_enable: std_logic;
   signal P3_IN: std_logic_vector(DecodeSize-1 downto 0);
@@ -79,6 +90,9 @@ architecture Mixed of Datapath is
   signal P3_DATA_OUT: std_logic_vector(63 downto 0);
   signal P3_JUMP_DATA_IN: std_logic_vector(21 downto 0);
   signal P3_JUMP_DATA: std_logic_vector(21 downto 0);
+  signal P3_CACHE_DATA_IN: std_logic_vector(17 downto 0);
+  signal P3_CACHE_DATA: std_logic_vector(17 downto 0);
+  signal P3_STALL_KILL: std_logic_vector(DecodeSize-1 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 4 - EXECUTE STAGE-------------------
@@ -87,8 +101,12 @@ architecture Mixed of Datapath is
   signal ALU_OUT: std_logic_vector(15 downto 0);
   signal FINAL_CARRY: std_logic_vector(0 downto 0);
   signal FINAL_ZERO: std_logic_vector(0 downto 0);
+  signal FINAL_FLAG_CONDITION: std_logic_vector(1 downto 0);
   signal ALU_carry: std_logic;
   signal ALU_zero: std_logic;
+  signal kill_stage4: std_logic;
+  signal jump_stage4: std_logic;
+  signal JUMP_STAGE4_ADDR: std_logic_vector(15 downto 0);
 ---------------FLAG FORWARDING SIGNALS-------------
   signal carry_forward: std_logic;
   signal carry_forward_val: std_logic;
@@ -122,6 +140,11 @@ architecture Mixed of Datapath is
   signal P4_FLAG_OUT: std_logic_vector(1 downto 0);
   signal P4_KILL: std_logic_vector(DecodeSize-1 downto 0);
   signal P4_KILL_STALL: std_logic_vector(DecodeSize-1 downto 0);
+  signal P4_CACHE_DATA_IN: std_logic_vector(17 downto 0);
+  signal P4_CACHE_DATA: std_logic_vector(17 downto 0);
+  signal P4_CACHE_VALUES: std_logic_vector(17 downto 0);
+  signal P4_JUMP_DATA_IN: std_logic_vector(21 downto 0);
+  signal P4_JUMP_DATA: std_logic_vector(21 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 5 - MEMORY STAGE--------------------
@@ -130,6 +153,8 @@ architecture Mixed of Datapath is
   signal MEMDATA_IN: std_logic_vector(15 downto 0);
   signal MEM_OUT: std_logic_vector(15 downto 0);
   signal mem_load_zero: std_logic;
+  signal jump_stage5: std_logic;
+  signal JUMP_STAGE5_ADDR: std_logic_vector(15 downto 0);
 ---------------------------------------------------
   signal p5_enable: std_logic;
   signal P5_IN: std_logic_vector(DecodeSize-1 downto 0);
@@ -138,6 +163,10 @@ architecture Mixed of Datapath is
   signal P5_DATA_OUT: std_logic_vector(47 downto 0);
   signal P5_FLAG_IN: std_logic_vector(1 downto 0);
   signal P5_FLAG_OUT: std_logic_vector(1 downto 0);
+  signal P5_CACHE_DATA_IN: std_logic_vector(17 downto 0);
+  signal P5_CACHE_DATA: std_logic_vector(17 downto 0);
+  signal P5_JUMP_DATA_IN: std_logic_vector(21 downto 0);
+  signal P5_JUMP_DATA: std_logic_vector(21 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 6 - WRITE STAGE---------------------
@@ -204,31 +233,32 @@ begin
       write_history => cache_write_history,
       cache_write => cache_write
     );
-  PCF: PCForwarding is
+  PCF: PCForwarding
     port map (
-    pc_stage3: in std_logic_vector(15 downto 0);
-    pc_stage4: in std_logic_vector(15 downto 0);
-    pc_stage5: in std_logic_vector(15 downto 0);
-    pc_stage3_flag: in std_logic;
-    pc_stage4_flag: in std_logic;
-    pc_stage5_flag: in std_logic;
-    pc_forwarding_out: out std_logic_vector(15 downto 0);
-    pc_forwarding: out std_logic;
-    kill1: out std_logic;
-    kill2: out std_logic;
-    kill3: out std_logic;
-    kill4: out std_logic;
-    reset: in std_logic
+    pc_stage3 => JUMP_STAGE3_ADDR,
+    pc_stage4 => JUMP_STAGE4_ADDR,
+    pc_stage5 => JUMP_STAGE5_ADDR,
+    pc_stage3_flag => jump_stage3,
+    pc_stage4_flag => jump_stage4,
+    pc_stage5_flag => jump_stage5,
+    pc_forwarding_out => PC_BRANCH_ADDRESS,
+    pc_forwarding => pc_branch_forward,
+    kill1 => kill_stage1,
+    kill2 => kill_stage2,
+    kill3 => kill_stage3,
+    kill4 => kill_stage4,
+    reset => reset
   );
 
 
   PC_IN <= (others => '0') when reset = '1' else
+           PC_BRANCH_ADDRESS when pc_branch_forward = '1' else
            PC_INCREMENT when pc_hit = '0' else
            PC_INCREMENT when pc_hit = '1' and pc_history = '0' else
            CACHE_NEXT_PC when pc_hit = '1' and pc_history = '1' else
            (others => '0');
 
-  P1_IN(15 downto 0) <= INST_MEMORY when reset = '0' else (others => '1');
+  P1_IN(15 downto 0) <= INST_MEMORY when (reset = '0' and kill_stage1 = '0') else (others => '1');
   P1_IN(31 downto 16) <= PC_IN;
   P1_IN(47 downto 32) <= PC_OUT;
   P1_IN(48) <= pc_history;
@@ -299,15 +329,23 @@ begin
         Decode_in => P2_IN_DUMMY,
         Decode_out => P2_kill
         );
+  KillStage2: KillStallInstruction
+    port map (
+        Decode_in => P2_IN_DUMMY,
+        Decode_out => P2_STALL_KILL
+      );
+
   LM_SM <= '1' when P1_OUT(15 downto 12) = "0110" else
            '1' when P1_OUT(15 downto 12) = "0111" else
            '0';
-  P2_IN <= P2_kill when P1_OUT(7 downto 0) = "00000000" and LM_SM = '1' else
-           P2_IN_DUMMY;
+  P2_IN <=  P2_STALL_KILL when kill_stage2 = '1' else
+            P2_kill when P1_OUT(7 downto 0) = "00000000" and LM_SM = '1' else
+            P2_IN_DUMMY;
   P2_DATA_IN(15 downto 0) <= P1_OUT(31 downto 16);
   P2_DATA_IN(31 downto 16) <= PL_OFFSET;
   P2_JUMP_DATA_IN(17 downto 0) <= P1_OUT(49 downto 32);
   P2_JUMP_DATA_IN(21 downto 18) <= INST_JUMP_DECODE(3 downto 0);
+  P2_CACHE_DATA_IN(17 downto 0) <= (others => '0');
 
 ---------------------------------------------------
   P2: DataRegister
@@ -333,6 +371,15 @@ begin
       port map (
         Din => P2_JUMP_DATA_IN,
         Dout => P2_JUMP_DATA,
+        Enable => p2_enable,
+        clk => clk,
+        reset => reset
+      );
+  P2_cache: DataRegister
+      generic map(data_width => 18)
+      port map (
+        Din => P2_CACHE_DATA_IN,
+        Dout => P2_CACHE_DATA,
         Enable => p2_enable,
         clk => clk,
         reset => reset
@@ -377,8 +424,14 @@ begin
          input => P2_OUT(23 downto 15),
          output => ZERO_PAD9
        );
+  KillStage3: KillStallInstruction
+    port map (
+        Decode_in => P2_OUT,
+        Decode_out => P3_STALL_KILL
+      );
 
-  P3_IN <= P2_OUT;
+
+  P3_IN <= P2_OUT when kill_stage3 = '0' else P3_STALL_KILL;
   FINAL_DATA1 <= DATA1 when forward3_regA1 = '0' else FORWARD3_DATA1;
   FINAL_DATA2 <= DATA2 when forward3_regA2 = '0' else FORWARD3_DATA2;
 
@@ -392,6 +445,7 @@ begin
                              ZERO_PAD9 when P2_OUT(25 downto 24) = "10" else
                              P2_DATA_OUT(31 downto 16) when P2_OUT(25 downto 24) = "11";
   P3_JUMP_DATA_IN(21 downto 0) <= P2_JUMP_DATA;
+  P3_CACHE_DATA_IN <= P2_CACHE_DATA when kill_stage3 = '0' else (others => '0');
 ----------------------------------------------------
   P3: DataRegister
       generic map (data_width => DecodeSize)
@@ -416,6 +470,15 @@ begin
       port map (
         Din => P3_JUMP_DATA_IN,
         Dout => P3_JUMP_DATA,
+        Enable => p3_enable,
+        clk => clk,
+        reset => reset
+      );
+  P3_cache: DataRegister
+      generic map(data_width => 18)
+      port map (
+        Din => P3_CACHE_DATA_IN,
+        Dout => P3_CACHE_DATA,
         Enable => p3_enable,
         clk => clk,
         reset => reset
@@ -516,6 +579,20 @@ DF: DataForwarding
       reset => reset
   );
 
+JE: JumpExecuteStage
+    port map (
+      op_code => P3_OUT(31 downto 28),
+      carry_logic => P3_OUT(35 downto 34),
+      cache_data => P3_JUMP_DATA(21 downto 0),
+      cache_prediction => P3_DATA_OUT(47 downto 32),
+      alu_output => ALU_OUT,
+      flag_condition => FINAL_FLAG_CONDITION,
+      reset => reset,
+      jump => jump_stage4,
+      jump_address => JUMP_STAGE4_ADDR,
+      cache_values => P4_CACHE_VALUES
+    );
+
   Kill: KillInstruction
       port map (
         Decode_in => P3_OUT,
@@ -529,18 +606,22 @@ DF: DataForwarding
 
   FINAL_CARRY(0) <= carry_forward_val when carry_forward = '1' else CARRY(0);
   FINAL_ZERO(0) <= zero_forward_val when zero_forward = '1' else ZERO(0);
+  FINAL_FLAG_CONDITION(0) <= FINAL_CARRY(0);
+  FINAL_FLAG_CONDITION(1) <= FINAL_ZERO(0);
 
   P4_IN <= P4_KILL when P3_OUT(34) = '1' and FINAL_CARRY(0) = '0' else
            P4_KILL when P3_OUT(35) = '1' and FINAL_ZERO(0) = '0' else
-           P4_KILL_STALL when load5_read4 = '1' else
+           P4_KILL_STALL when load5_read4 = '1' or kill_stage4 = '1' else
            P3_OUT;
   P4_DATA_IN(47 downto 32) <= P3_DATA_OUT(63 downto 48) when forward4_regA2 = '0' else FORWARD4_DATA2;
   P4_DATA_IN(31 downto 16) <= P3_DATA_OUT(47 downto 32);
   P4_DATA_IN(15 downto 0) <= ALU_OUT;
   P4_FLAG_IN(1) <= ALU_carry;
   P4_FLAG_IN(0) <= ALU_zero;
-
-  
+  P4_JUMP_DATA_IN <= P3_JUMP_DATA;
+  P4_CACHE_DATA_IN <= P4_CACHE_VALUES when P3_JUMP_DATA(21 downto 19) = "100" else
+                      (others => '0') when load5_read4 = '1' or kill_stage4 = '1' else
+                      P3_CACHE_DATA;
 ----------------------------------------------------
   P4: DataRegister
       generic map (data_width => DecodeSize)
@@ -565,6 +646,24 @@ DF: DataForwarding
       port map (
         Din => P4_FLAG_IN,
         Dout => P4_FLAG_OUT,
+        Enable => p4_enable,
+        clk => clk,
+        reset => reset
+      );
+  P4_jump: DataRegister
+      generic map(data_width => 22)
+      port map (
+        Din => P4_JUMP_DATA_IN,
+        Dout => P4_JUMP_DATA,
+        Enable => p4_enable,
+        clk => clk,
+        reset => reset
+      );
+  P4_cache: DataRegister
+      generic map(data_width => 18)
+      port map (
+        Din => P4_CACHE_DATA_IN,
+        Dout => P4_CACHE_DATA,
         Enable => p4_enable,
         clk => clk,
         reset => reset
@@ -595,6 +694,8 @@ DF: DataForwarding
   P5_DATA_IN(15 downto 0) <= P4_DATA_OUT(15 downto 0);
   P5_FLAG_IN(1) <= P4_FLAG_OUT(1);
   P5_FLAG_IN(0) <= mem_load_zero when P4_OUT(31 downto 28) = "0100" else P4_FLAG_OUT(0);
+  P5_CACHE_DATA_IN <= P4_CACHE_DATA;
+  P5_JUMP_DATA_IN <= P4_JUMP_DATA;
 ---------------------------------------------------
   P5: DataRegister
       generic map (data_width => DecodeSize)
@@ -623,6 +724,25 @@ DF: DataForwarding
         clk => clk,
         reset => reset
       );
+  P5_jump: DataRegister
+      generic map(data_width => 22)
+      port map (
+        Din => P5_JUMP_DATA_IN,
+        Dout => P5_JUMP_DATA,
+        Enable => p5_enable,
+        clk => clk,
+        reset => reset
+      );
+  P5_cache: DataRegister
+      generic map(data_width => 18)
+      port map (
+        Din => P5_CACHE_DATA_IN,
+        Dout => P5_CACHE_DATA,
+        Enable => p5_enable,
+        clk => clk,
+        reset => reset
+      );
+
 
 ---------------------------------------------------
 ---------STAGE 6 - WRITE STAGE---------------------
@@ -636,6 +756,11 @@ DF: DataForwarding
 
   CARRY_IN <= P5_FLAG_OUT(1 downto 1);
   ZERO_IN <= P5_FLAG_OUT(0 downto 0);
+
+  CACHE_WRITE_PC <= P5_JUMP_DATA(15 downto 0);
+  CACHE_WRITE_ADDR <= P5_CACHE_DATA(15 downto 0);
+  cache_write <= P5_CACHE_DATA(17);
+  cache_write_history <= P5_CACHE_DATA(16);
 
   CR: DataRegister
       generic map (data_width => 1)

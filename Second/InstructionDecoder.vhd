@@ -55,36 +55,47 @@ begin
   output(34) <= carry_check;
   output(35) <= zero_check;
 
-  is_jump <= pc_updated;
   jump_output(0) <= is_jump;
   jump_output(3 downto 1) <= jump_stage(2 downto 0);
 
   process(instruction, op_code, carry_logic)
     variable npc_updated: std_logic := '0';
+    variable nis_jump: std_logic := '0';
   begin
     if (op_code = "0000" and instruction(5 downto 3) = "111") then
       npc_updated := '1';
+      nis_jump := '1';
     elsif (op_code = "0001" and instruction(8 downto 6) = "111") then
       npc_updated := '1';
+      nis_jump := '1';
     elsif (op_code = "0010" and instruction(5 downto 3) = "111") then
       npc_updated := '1';
+      nis_jump := '1';
     elsif (op_code = "0100" and instruction(11 downto 9) = "111") then
       npc_updated := '1';
+      nis_jump := '1';
     elsif (op_code = "0011" and instruction(11 downto 9) = "111") then
       npc_updated := '1';
+      nis_jump := '1';
     elsif (op_code = "0110" and instruction(7) = '1') then
       npc_updated := '1';
+      nis_jump := '1';
     elsif (op_code = "1100" or op_code = "1000" or op_code = "1001") then
       npc_updated := '1';
+      nis_jump := '1';
     elsif (op_code = "1111") then
       npc_updated := '1';
+      nis_jump := '0';
     else
       npc_updated := '0';
+      nis_jump := '0';
     end if;
     if (reset = '1') then
       pc_updated <= '1';
+      is_jump <= '0';
     else
       pc_updated <= npc_updated;
+      is_jump <= nis_jump;
     end if;
   end process;
 

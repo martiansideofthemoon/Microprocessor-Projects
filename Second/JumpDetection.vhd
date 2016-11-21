@@ -9,13 +9,11 @@ entity JumpExecuteStage is
     cache_data: in std_logic_vector(21 downto 0);
     cache_prediction: in std_logic_vector(15 downto 0);
     alu_output: in std_logic_vector(15 downto 0);
-    flag_condition: in std_logic;
+    flag_condition: in std_logic_vector(1 downto 0);
     reset: in std_logic;
     jump: out std_logic;
     jump_address: out std_logic_vector(15 downto 0);
-    cache_write: out std_logic;
-    cache_history: out std_logic;
-    cache_addr: out std_logic_vector(15 downto 0)
+    cache_values: out std_logic_vector(17 downto 0)
   );
 end entity;
 
@@ -25,6 +23,9 @@ signal jump_stage: std_logic_vector(2 downto 0);
 signal pc_hit: std_logic;
 signal pc_addr: std_logic_vector(15 downto 0);
 signal pc_history: std_logic;
+signal cache_write: std_logic;
+signal cache_addr: std_logic_vector(15 downto 0);
+signal cache_history: std_logic;
 begin
 is_jump <= cache_data(18);
 jump_stage <= cache_data(21 downto 19);
@@ -32,7 +33,7 @@ pc_addr <= cache_prediction(15 downto 0);
 pc_hit <= cache_data(17);
 pc_history <= cache_data(16);
 -- Process to determine state of jump signals
-process(op_code, alu_output, is_jump, jump_stage, carry_logic, flag_condition, reset)
+process(op_code, alu_output, is_jump, jump_stage, carry_logic, flag_condition, reset, pc_hit, pc_addr)
 variable njump: std_logic;
 variable njump_address: std_logic_vector(15 downto 0);
 begin
@@ -43,10 +44,16 @@ begin
     njump := '0';
     njump_address := (others => '0');
   else
-    if (op_code = "0000" and carry_logic = "00") then
-      -- Add instruction with writeA3 = R7
-      njump := '1';
-      njump_address := alu_output;
+    if ((op_code = "0000" or op_code = "0010") and carry_logic = "00") then
+      -- ADD / NDU instruction with writeA3 = R7
+      if (pc_hit = '1' and pc_addr = alu_output) then
+        -- Successful jump
+        njump := '0';
+        njump_address := (others => '0');
+      else
+        njump := '1';
+        njump_address := alu_output;
+      end if;
     else
       njump := '0';
       njump_address := (others => '0');
@@ -60,6 +67,11 @@ begin
     jump_address <= njump_address;
   end if;
 end process;
+
+cache_values(17) <= cache_write;
+cache_values(16) <= cache_history;
+cache_values(15 downto 0) <= cache_addr;
+
 -- Process to determine state of cache
 process(op_code, cache_data, alu_output, is_jump, jump_stage, carry_logic, flag_condition,
         pc_addr, pc_hit, pc_history, reset)
