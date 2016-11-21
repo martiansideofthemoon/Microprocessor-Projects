@@ -6,14 +6,14 @@ use work.ProcessorComponents.all;
 use work.CacheComponent.all;
 
 entity Cache is
-  port( 
+  port(
     pc_target: out  std_logic_vector(15 downto 0);
     pc_in: in  std_logic_vector(15 downto 0);
     hit: out std_logic;
     reset: in std_logic;
     cache_write: in std_logic;
-    cache_pc: in std_logic;
-    cache_write_data: in std_logic_vector(15 downto 0) 
+    cache_pc: in std_logic_vector(15 downto 0);
+    cache_write_data: in std_logic_vector(15 downto 0)
     );
 end Cache;
 
@@ -39,32 +39,32 @@ begin
   comparator(13) <= '1' when cache_array(13)(31 downto 16) = pc_in else '0';
   comparator(14) <= '1' when cache_array(14)(31 downto 16) = pc_in else '0';
   comparator(15) <= '1' when cache_array(15)(31 downto 16) = pc_in else '0';
-  
+
   process (pc_in) is
   variable nhit: std_logic := '0';
   variable index: integer := 0;
   variable ntarget: std_logic_vector(15 downto 0) := (others => '0');
   begin
-    cache_array(0)(32) := '0';
-    cache_array(1)(32) := '0';
-    cache_array(2)(32) := '0';
-    cache_array(3)(32) := '0';
-    cache_array(4)(32) := '0';
-    cache_array(5)(32) := '0';
-    cache_array(6)(32) := '0';
-    cache_array(7)(32) := '0';
-    cache_array(8)(32) := '0';
-    cache_array(9)(32) := '0';
-    cache_array(10)(32) := '0';
-    cache_array(11)(32) := '0';
-    cache_array(12)(32) := '0';
-    cache_array(13)(32) := '0';
-    cache_array(14)(32) := '0';
-    cache_array(15)(32) := '0';
+    cache_array(0)(32) <= '0';
+    cache_array(1)(32) <= '0';
+    cache_array(2)(32) <= '0';
+    cache_array(3)(32) <= '0';
+    cache_array(4)(32) <= '0';
+    cache_array(5)(32) <= '0';
+    cache_array(6)(32) <= '0';
+    cache_array(7)(32) <= '0';
+    cache_array(8)(32) <= '0';
+    cache_array(9)(32) <= '0';
+    cache_array(10)(32) <= '0';
+    cache_array(11)(32) <= '0';
+    cache_array(12)(32) <= '0';
+    cache_array(13)(32) <= '0';
+    cache_array(14)(32) <= '0';
+    cache_array(15)(32) <= '0';
     if (comparator = "0000000000000000") then
       nhit := '0';
       ntarget := (others => '0');
-      cache_array(last_index) := '1'; 
+      cache_array(last_index)(32) <= '1';
     else
       nhit := '1';
       if (comparator(0) = '1') then
@@ -101,11 +101,11 @@ begin
         index := 15;
       end if;
       ntarget := cache_array(index)(15 downto 0);
-      cache_array(index)(32) := '1';
+      cache_array(index)(32) <= '1';
       last_index <= index;
    end if;
 
-    if (reset = '1') then 
+    if (reset = '1') then
       hit <= '0';
       pc_target <= (others => '0');
     else
@@ -153,7 +153,7 @@ begin
       index := 15;
     end if;
     if cache_write = '1' then
-      cache_array(index)(32) <= '1'
+      cache_array(index)(32) <= '1';
       cache_array(index)(31 downto 16) <=  cache_pc;
       cache_array(index)(15 downto 0) <= cache_write_data;
     end if;
