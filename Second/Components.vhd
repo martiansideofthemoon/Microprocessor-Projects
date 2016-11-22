@@ -285,6 +285,25 @@ package ProcessorComponents is
     cache_write: in std_logic
   );
   end component Cache;
+
+  component PCForwarding is
+  port (
+    pc_stage3: in std_logic_vector(15 downto 0);
+    pc_stage4: in std_logic_vector(15 downto 0);
+    pc_stage5: in std_logic_vector(15 downto 0);
+    pc_stage3_flag: in std_logic;
+    pc_stage4_flag: in std_logic;
+    pc_stage5_flag: in std_logic;
+    pc_forwarding_out: out std_logic_vector(15 downto 0);  
+    pc_forwarding: out std_logic;
+    kill1 : out std_logic;
+    kill2 : out std_logic;
+    kill3 : out std_logic;
+    kill4 : out std_logic;
+    reset: in std_logic
+  );
+  end component PCForwarding;
+
 end package;
 
 library ieee;
