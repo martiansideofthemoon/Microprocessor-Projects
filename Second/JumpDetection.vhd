@@ -89,7 +89,7 @@ begin
     ncache_history := '0';
   else
     if (op_code = "0011") then
-      -- ADD/NDU/ADI instruction with writeA3 = R7
+      -- LHI instruction with writeA3 = R7
       if (pc_hit = '1' and pc_addr = new_pcval) then
       -- This is the case of a successful hit
         ncache_write := '0';
@@ -176,7 +176,7 @@ begin
         njump := '1';
         njump_address := alu_output;
       end if;
-    elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "10") then
+    elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "01") then
       -- ADC / NDC instruction with writeA3 = R7
       if (flag_condition(0) = '1') then
         --checks if carry is high
@@ -192,7 +192,7 @@ begin
         njump := '0';
         njump_address := (others => '0'); 
       end if;
-    elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "01") then
+    elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "10") then
       -- ADZ / NDZ instruction with writeA3 = R7
       if (flag_condition(1) = '1') then
         --checks if zero is high
@@ -254,7 +254,7 @@ begin
         ncache_addr := alu_output;
         ncache_history := '1';
       end if;
-    elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "10") then
+    elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "01") then
       -- ADC/NDC instruction with writeA3 = R7
       if (flag_condition(0) = '1') then
         if (pc_hit = '1' and pc_addr = alu_output) then
@@ -268,12 +268,15 @@ begin
           ncache_history := '1';
         end if;
       else
-          ncache_write := '0';
-          ncache_addr := (others => '0');
-          ncache_history := '0';
+      -- here the flag gives false hence branch must not be taken, 
+      -- so history bit updated if pc_hit='1' and other values overwritten again
+      -- if pc_hit='0', value written to cache and history bit set to 0
+        ncache_write := '1';
+        ncache_addr := alu_output;
+        ncache_history := '0';
       end if;
-    elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "01") then
-      -- ADC/NDC instruction with writeA3 = R7
+    elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "10") then
+      -- ADZ/NDZ instruction with writeA3 = R7
       if (flag_condition(1) = '1') then
         if (pc_hit = '1' and pc_addr = alu_output) then
         -- This is the case of a successful hit
@@ -286,9 +289,12 @@ begin
           ncache_history := '1';
         end if;
       else
-          ncache_write := '0';
-          ncache_addr := (others => '0');
-          ncache_history := '0';
+      -- here the flag gives false hence branch must not be taken, 
+      -- so history bit updated if pc_hit='1' and other values overwritten again
+      -- if pc_hit='0', value written to cache and history bit set to 0
+        ncache_write := '1';
+        ncache_addr := alu_output;
+        ncache_history := '0';
       end if;
     else
       ncache_write := '0';
@@ -354,8 +360,8 @@ begin
     njump := '0';
     njump_address := (others => '0');
   else
-    if (op_code = "0100" ) then
-      -- LW instruction with writeA3 = R7
+    if (op_code = "0100" or op_code = "0110") then
+      -- LW instruction with writeA3 = R7, LM with immediate(7) = 1
       if (pc_hit = '1' and pc_addr = memread) then
         -- Successful jump
         njump := '0';
@@ -397,8 +403,8 @@ begin
     ncache_addr := (others => '0');
     ncache_history := '0';
   else
-    if (op_code = "0100") then
-      -- LW instruction with writeA3 = R7
+    if (op_code = "0100" or op_code = "0110") then
+      -- LW instruction with writeA3 = R7, LM with immediate(7) = 1
       if (pc_hit = '1' and pc_addr = memread) then
       -- This is the case of a successful hit
         ncache_write := '0';
