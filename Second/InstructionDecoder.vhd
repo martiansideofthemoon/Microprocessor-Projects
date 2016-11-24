@@ -256,7 +256,7 @@ begin
       carry_check <= '0';
       zero_check <= '0';
       alu2_select <= "10";
-      alu1_select <= "01";
+      alu1_select <= "10";
       immediate <= instruction(8 downto 0);
       -- Signals for Execute stage
       alu_op <= '0';

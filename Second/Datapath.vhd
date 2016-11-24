@@ -531,8 +531,12 @@ begin
 
 ---------------------------------------------------
 ---------STAGE 4 - EXECUTE STAGE-------------------
-  ALU1_IN <= P3_DATA_OUT(31 downto 16) when forward4_regA1 = '0' else FORWARD4_DATA1;
-  ALU2_IN <= P3_DATA_OUT(15 downto 0) when forward4_regA2 = '0' else FORWARD4_DATA2;
+  ALU1_IN <= FORWARD4_DATA1 when forward4_regA1 = '1' and
+                                 (P3_OUT(27 downto 26) = "00" or P3_OUT(27 downto 26) = "01") else
+                                 P3_DATA_OUT(31 downto 16);
+  ALU2_IN <= FORWARD4_DATA2 when forward4_regA2 = '1' and
+                                 P3_OUT(25 downto 24) = "00" else
+                                 P3_DATA_OUT(15 downto 0);
   AL: ALU
       port map (
         alu_in_1 => ALU1_IN,
