@@ -401,6 +401,32 @@ begin
       reg_A3 <= instruction(11 downto 9);
      jump_stage <= "100";
      -- To ensure 2's complement
+    elsif (reset = '0' and op_code = "1001") then
+      -- Generic JLR instruction
+      -- Signals for Register Read stage
+      reg_A2 <= instruction(8 downto 6);
+      reg_A1 <= "000";
+      carry_check <= '0';
+      zero_check <= '0';
+      alu2_select <= "00";
+      alu1_select <= "10"; -- for add with 0
+      immediate <= (others => '0');
+      -- Signals for Execute stage
+      alu_op <= '0';
+      -- Signals for Memory stage
+      mem_write <= '0';
+      -- Signals for Register Write stage
+      if (instruction(11 downto 9) /= "111") then
+        reg_write <= '1';
+      else
+        reg_write <= '0';
+      end if;
+      reg_write_select <= "00";
+      set_carry <= '0';
+      set_zero <= '0';
+      reg_A3 <= instruction(11 downto 9);
+     jump_stage <= "100";
+     -- To ensure 2's complement
     else
       -- Signals for Register Read stage
       reg_A1 <= "000";

@@ -268,6 +268,26 @@ begin
           njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
         end if;
       end if;
+    elsif (op_code = "1001") then
+      -- JLR instruction
+      if (writeA3 /= "111") then
+        if (pc_hit = '1' and next_pc_addr = alu_output) then
+          -- Successful jump
+          njump := '0';
+          njump_address := (others => '0');
+        else
+          njump := '1';
+          njump_address := alu_output;
+        end if;
+      else
+        if (pc_hit = '1' and next_pc_addr = (std_logic_vector(unsigned(curr_pc_addr) + 1))) then
+          njump := '0';
+          njump_address := (others => '0');
+        else
+          njump := '1';
+          njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
+        end if;
+      end if;
     else
       njump := '0';
       njump_address := (others => '0');
@@ -390,6 +410,25 @@ begin
         else
           ncache_write := '1';
           ncache_addr := branch_address;
+          ncache_history := '1';
+        end if;
+      else
+        ncache_write := '1';
+        ncache_addr := std_logic_vector(unsigned(curr_pc_addr) + 1);
+        ncache_history := '1';
+      end if;
+    elsif (op_code = "1001") then
+      -- JLR Instruction
+      if (writeA3 /= "111") then
+        -- Storage register is not R7
+        if (pc_hit = '1' and next_pc_addr = alu_output) then
+        -- This is the case of a successful hit
+          ncache_write := '0';
+          ncache_addr := (others => '0');
+          ncache_history := '0';
+        else
+          ncache_write := '1';
+          ncache_addr := alu_output;
           ncache_history := '1';
         end if;
       else

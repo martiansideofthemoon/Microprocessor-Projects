@@ -665,7 +665,8 @@ INC2: Increment
 -- dummy is specially for branch
   P4_IN_DUMMY(13 downto 0) <= P3_OUT(13 downto 0);
   P4_IN_DUMMY(14) <= '1' when P3_OUT(31 downto 28) = "1100" or
-                              P3_OUT(31 downto 28) = "1000" else P3_OUT(14);
+                              P3_OUT(31 downto 28) = "1000" or
+                              P3_OUT(31 downto 28) = "1001" else P3_OUT(14);
   P4_IN_DUMMY(DecodeSize-1 downto 15) <= P3_OUT(DecodeSize-1 downto 15);
 
   P4_IN <= P4_KILL when P3_OUT(34) = '1' and FINAL_CARRY(0) = '0' else
@@ -681,8 +682,13 @@ INC2: Increment
                                 (P3_OUT(31 downto 28) = "1000" and P3_OUT(13 downto 11) /= "111") else
                               PC_PLUS_ONE when
                                 (P3_OUT(31 downto 28) = "1000" and P3_OUT(13 downto 11) = "111") else
+                              ALU_OUT when
+                                (P3_OUT(31 downto 28) = "1001" and P3_OUT(13 downto 11) /= "111") else
+                              PC_PLUS_ONE when
+                                (P3_OUT(31 downto 28) = "1001" and P3_OUT(13 downto 11) = "111") else
                               P3_DATA_OUT(47 downto 32);
-  P4_DATA_IN(15 downto 0) <= PC_PLUS_ONE when P3_OUT(31 downto 28) = "1000" else
+  P4_DATA_IN(15 downto 0) <= PC_PLUS_ONE when P3_OUT(31 downto 28) = "1000" or
+                                              P3_OUT(31 downto 28) = "1001" else
                              ALU_OUT;
 
 

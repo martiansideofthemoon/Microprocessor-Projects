@@ -82,7 +82,6 @@ begin
   nload5_read4_regA1 := '0';
   nload5_read4_regA2 := '0';
 
-  -- TODO :- BRANCH op_codes
   -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW, BEQ
   if (stage4_opcode = "0000" or stage4_opcode = "0001" or
       stage4_opcode = "0010" or stage4_opcode = "0100" or
@@ -98,10 +97,10 @@ begin
     nload5_read4_regA1 := '0';
   end if;
 
-  -- TODO :- BRANCH op_codes
-  -- Current opcodes include all ADDs, NDUs, SW, SM, BEQ
+  -- Current opcodes include all ADDs, NDUs, SW, SM, BEQ, JLR
   if (stage4_opcode = "0000" or stage4_opcode = "0010" or
-      stage4_opcode = "0101" or stage4_opcode = "0111" or stage4_opcode = "1100") then
+      stage4_opcode = "0101" or stage4_opcode = "0111" or
+      stage4_opcode = "1100" or stage4_opcode = "1001") then
     if ((stage5_opcode = "0100" or stage5_opcode = "0110") and
         stage5_regwrite = '1' and stage4_regA2 = stage5_writeA3) then
       nload5_read4_regA2 := '1';
@@ -148,7 +147,6 @@ begin
   nforward3_regA2 := '0';
   nforward3_dataA2 := (others => '0');
 
-  -- TODO :- BRANCH op_codes
   -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW, BEQ
   if (stage3_opcode = "0000" or stage3_opcode = "0001" or
       stage3_opcode = "0010" or stage3_opcode = "0100" or
@@ -170,10 +168,10 @@ begin
     nforward3_dataA1 := (others => '0');
   end if;
 
-  -- TODO :- BRANCH op_codes
-  -- Current opcodes include all ADDs, NDUs, SW, SM, BEQ
+  -- Current opcodes include all ADDs, NDUs, SW, SM, BEQ, JLR
   if (stage3_opcode = "0000" or stage3_opcode = "0010" or
-      stage3_opcode = "0101" or stage3_opcode = "0111" or stage3_opcode = "1100") then
+      stage3_opcode = "0101" or stage3_opcode = "0111" or
+      stage3_opcode = "1100" or stage3_opcode = "1001") then
 
     if (stage6_regwrite = '1' and stage3_regA2 = stage6_writeA3) then
       nforward3_regA2 := '1';
@@ -242,7 +240,6 @@ begin
   nforward4_regA2 := '0';
   nforward4_dataA2 := (others => '0');
 
-  -- TODO :- BRANCH op_codes
   -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW, BEQ
   if (stage4_opcode = "0000" or stage4_opcode = "0001" or
       stage4_opcode = "0010" or stage4_opcode = "0100" or
@@ -270,11 +267,10 @@ begin
     nforward4_dataA1 := (others => '0');
   end if;
 
-  -- TODO :- BRANCH op_codes
-  -- Current opcodes include all ADDs, NDUs, SW, SM, BEQ
+  -- Current opcodes include all ADDs, NDUs, SW, SM, BEQ, JLR
   if (stage4_opcode = "0000" or stage4_opcode = "0010" or
       stage4_opcode = "0101" or stage4_opcode = "0111" or
-      stage4_opcode = "1100") then
+      stage4_opcode = "1100" or stage4_opcode = "1001") then
     if (stage5_regwrite = '1' and stage4_regA2 = stage5_writeA3) then
       nforward4_regA2 := '1';
       nforward4_dataA2 := stage5_data(15 downto 0);
