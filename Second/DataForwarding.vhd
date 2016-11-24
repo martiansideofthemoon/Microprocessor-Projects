@@ -87,7 +87,7 @@ begin
   if (stage4_opcode = "0000" or stage4_opcode = "0001" or
       stage4_opcode = "0010" or stage4_opcode = "0100" or
       stage4_opcode = "0101" or stage4_opcode = "0110" or
-      stage4_opcode = "0111") then
+      stage4_opcode = "0111" or stage4_opcode = "1100") then
     if ((stage5_opcode = "0100" or stage5_opcode = "0110") and
         stage5_regwrite = '1' and stage4_regA1 = stage5_writeA3) then
       nload5_read4_regA1 := '1';
@@ -101,7 +101,7 @@ begin
   -- TODO :- BRANCH op_codes
   -- Current opcodes include all ADDs, NDUs, SW, SM
   if (stage4_opcode = "0000" or stage4_opcode = "0010" or
-      stage4_opcode = "0101" or stage4_opcode = "0111") then
+      stage4_opcode = "0101" or stage4_opcode = "0111" or stage4_opcode = "1100") then
     if ((stage5_opcode = "0100" or stage5_opcode = "0110") and
         stage5_regwrite = '1' and stage4_regA2 = stage5_writeA3) then
       nload5_read4_regA2 := '1';
@@ -153,7 +153,7 @@ begin
   if (stage3_opcode = "0000" or stage3_opcode = "0001" or
       stage3_opcode = "0010" or stage3_opcode = "0100" or
       stage3_opcode = "0101" or stage3_opcode = "0110" or
-      stage3_opcode = "0111") then
+      stage3_opcode = "0111" or stage3_opcode = "1100") then
 
     if (stage6_regwrite = '1' and stage3_regA1 = stage6_writeA3) then
       nforward3_regA1 := '1';
@@ -173,7 +173,7 @@ begin
   -- TODO :- BRANCH op_codes
   -- Current opcodes include all ADDs, NDUs, SW, SM
   if (stage3_opcode = "0000" or stage3_opcode = "0010" or
-      stage3_opcode = "0101" or stage3_opcode = "0111") then
+      stage3_opcode = "0101" or stage3_opcode = "0111" or stage3_opcode = "1100") then
 
     if (stage6_regwrite = '1' and stage3_regA2 = stage6_writeA3) then
       nforward3_regA2 := '1';
@@ -247,7 +247,7 @@ begin
   if (stage4_opcode = "0000" or stage4_opcode = "0001" or
       stage4_opcode = "0010" or stage4_opcode = "0100" or
       stage4_opcode = "0101" or stage4_opcode = "0110" or
-      stage4_opcode = "0111") then
+      stage4_opcode = "0111" or stage4_opcode = "1100") then
 
     if (stage5_regwrite = '1' and stage4_regA1 = stage5_writeA3) then
       nforward4_regA1 := '1';
@@ -273,7 +273,7 @@ begin
   -- TODO :- BRANCH op_codes
   -- Current opcodes include all ADDs, NDUs, SW, SM
   if (stage4_opcode = "0000" or stage4_opcode = "0010" or
-      stage4_opcode = "0101" or stage4_opcode = "0111") then
+      stage4_opcode = "0101" or stage4_opcode = "0111" stage4_opcode = "1100") then
     if (stage5_regwrite = '1' and stage4_regA2 = stage5_writeA3) then
       nforward4_regA2 := '1';
       nforward4_dataA2 := stage5_data(15 downto 0);

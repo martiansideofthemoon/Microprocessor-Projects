@@ -195,8 +195,13 @@ begin
           njump_address := alu_output;
         end if;
       else
-        njump := '1';
-        njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
+        if (pc_hit = '1' and pc_history = '0') then
+          njump := '0';
+          njump_address := (others => '0');
+        else  
+          njump := '1';
+          njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
+        end if;
       end if;
     elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "10") then
       -- ADZ / NDZ instruction with writeA3 = R7
@@ -211,8 +216,13 @@ begin
           njump_address := alu_output;
         end if;
       else
-        njump := '1';
-        njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
+        if (pc_hit = '1' and pc_history = '0') then
+          njump := '0';
+          njump_address := (others => '0');
+        else  
+          njump := '1';
+          njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
+        end if;
       end if;
     elsif (op_code = "1100") then
       -- BEQ instruction
@@ -227,8 +237,13 @@ begin
           njump_address := branch_address;
         end if;
       else
-        njump := '1';
-        njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
+        if (pc_hit = '1' and pc_history = '0') then
+          njump := '0';
+          njump_address := (others => '0');
+        else  
+          njump := '1';
+          njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
+        end if;
       end if;
     else
       njump := '0';
