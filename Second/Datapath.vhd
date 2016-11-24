@@ -484,8 +484,9 @@ begin
                              P2_DATA_OUT(31 downto 16) when P2_OUT(25 downto 24) = "11";
   P3_JUMP_DATA_IN(21 downto 0) <= P2_JUMP_DATA;
   P3_JUMP_DATA_IN(37 downto 22) <= BRANCH_ADDR;
-  P3_CACHE_DATA_IN <= P3_CACHE_VALUES when P2_JUMP_DATA(21 downto 19) = "011" else
-                      P2_CACHE_DATA when kill_stage3 = '0' else 
+  P3_CACHE_DATA_IN <= (others => '0') when kill_stage3 = '1' else
+                      P3_CACHE_VALUES when P2_JUMP_DATA(21 downto 19) = "011" else
+                      P2_CACHE_DATA when kill_stage3 = '0' else
                       (others => '0');
 ----------------------------------------------------
   P3: DataRegister
@@ -660,15 +661,15 @@ JE: JumpExecuteStage
            P4_KILL when P3_OUT(35) = '1' and FINAL_ZERO(0) = '0' else
            P4_KILL_STALL when load5_read4 = '1' or kill_stage4 = '1' else
            P4_IN_DUMMY;
-  
+
   P4_DATA_IN(47 downto 32) <= P3_DATA_OUT(63 downto 48) when forward4_regA2 = '0' else FORWARD4_DATA2;
   P4_DATA_IN(31 downto 16) <= P3_JUMP_DATA(37 downto 22) when (P3_OUT(31 downto 28) = "1100" and ALU_OUT = "0000000000000000") else P3_DATA_OUT(47 downto 32);
   P4_DATA_IN(15 downto 0) <= ALU_OUT;
   P4_FLAG_IN(1) <= ALU_carry;
   P4_FLAG_IN(0) <= ALU_zero;
   P4_JUMP_DATA_IN <= P3_JUMP_DATA;
-  P4_CACHE_DATA_IN <= P4_CACHE_VALUES when P3_JUMP_DATA(21 downto 19) = "100" else
-                      (others => '0') when load5_read4 = '1' or kill_stage4 = '1' else
+  P4_CACHE_DATA_IN <= (others => '0') when load5_read4 = '1' or kill_stage4 = '1' else
+                      P4_CACHE_VALUES when P3_JUMP_DATA(21 downto 19) = "100" else
                       P3_CACHE_DATA;
 ----------------------------------------------------
   P4: DataRegister
@@ -760,7 +761,7 @@ JE: JumpExecuteStage
   P5_DATA_IN(15 downto 0) <= P4_DATA_OUT(15 downto 0);
   P5_FLAG_IN(1) <= P4_FLAG_OUT(1);
   P5_FLAG_IN(0) <= mem_load_zero when P4_OUT(31 downto 28) = "0100" else P4_FLAG_OUT(0);
-  P5_CACHE_DATA_IN <= P5_CACHE_VALUES when P3_JUMP_DATA(21 downto 19) = "101" else P4_CACHE_DATA;
+  P5_CACHE_DATA_IN <= P5_CACHE_VALUES when P4_JUMP_DATA(21 downto 19) = "101" else P4_CACHE_DATA;
   P5_JUMP_DATA_IN <= P4_JUMP_DATA;
 ---------------------------------------------------
   P5: DataRegister
