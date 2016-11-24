@@ -360,7 +360,7 @@ begin
       reg_A1 <= instruction(11 downto 9);
       carry_check <= '0';
       zero_check <= '0';
-      alu2_select <= "11";
+      alu2_select <= "00";
       alu1_select <= "01"; -- for subtract
       immediate <= instruction(8 downto 0);
       -- Signals for Execute stage
@@ -375,6 +375,32 @@ begin
       reg_A3 <= "000";
       jump_stage <= "100";
       -- To ensure 2's complement
+    elsif (reset = '0' and op_code = "1000") then
+      -- Generic JAL instruction
+      -- Signals for Register Read stage
+      reg_A2 <= "000";
+      reg_A1 <= "000";
+      carry_check <= '0';
+      zero_check <= '0';
+      alu2_select <= "00";
+      alu1_select <= "00"; -- for subtract
+      immediate <= instruction(8 downto 0);
+      -- Signals for Execute stage
+      alu_op <= '0';
+      -- Signals for Memory stage
+      mem_write <= '0';
+      -- Signals for Register Write stage
+      if (instruction(11 downto 9) /= "111") then
+        reg_write <= '1';
+      else
+        reg_write <= '0';
+      end if;
+      reg_write_select <= "00";
+      set_carry <= '0';
+      set_zero <= '0';
+      reg_A3 <= instruction(11 downto 9);
+     jump_stage <= "100";
+     -- To ensure 2's complement
     else
       -- Signals for Register Read stage
       reg_A1 <= "000";

@@ -327,6 +327,7 @@ package ProcessorComponents is
       alu_output: in std_logic_vector(15 downto 0);
       branch_address: in std_logic_vector(15 downto 0);
       flag_condition: in std_logic_vector(1 downto 0);
+      writeA3: in std_logic_vector(2 downto 0);
       reset: in std_logic;
       jump: out std_logic;
       jump_address: out std_logic_vector(15 downto 0);

@@ -137,6 +137,7 @@ entity JumpExecuteStage is
     alu_output: in std_logic_vector(15 downto 0);
     branch_address: in std_logic_vector(15 downto 0);
     flag_condition: in std_logic_vector(1 downto 0);
+    writeA3: in std_logic_vector(2 downto 0);
     reset: in std_logic;
     jump: out std_logic;
     jump_address: out std_logic_vector(15 downto 0);
@@ -160,8 +161,10 @@ jump_stage <= cache_data(21 downto 19);
 next_pc_addr <= cache_prediction(15 downto 0);
 pc_hit <= cache_data(17);
 pc_history <= cache_data(16);
+curr_pc_addr <= cache_data(15 downto 0);
 -- Process to determine state of jump signals
-process(op_code, alu_output, is_jump, jump_stage, carry_logic, flag_condition, reset, pc_hit, next_pc_addr)
+process(op_code, alu_output, is_jump, jump_stage, carry_logic, pc_history, writeA3,
+        flag_condition, reset, pc_hit, next_pc_addr, branch_address, curr_pc_addr)
 variable njump: std_logic;
 variable njump_address: std_logic_vector(15 downto 0);
 begin
@@ -198,7 +201,7 @@ begin
         if (pc_hit = '1' and pc_history = '0') then
           njump := '0';
           njump_address := (others => '0');
-        else  
+        else
           njump := '1';
           njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
         end if;
@@ -219,7 +222,7 @@ begin
         if (pc_hit = '1' and pc_history = '0') then
           njump := '0';
           njump_address := (others => '0');
-        else  
+        else
           njump := '1';
           njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
         end if;
@@ -240,7 +243,27 @@ begin
         if (pc_hit = '1' and pc_history = '0') then
           njump := '0';
           njump_address := (others => '0');
-        else  
+        else
+          njump := '1';
+          njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
+        end if;
+      end if;
+    elsif (op_code = "1000") then
+      -- JAL instruction
+      if (writeA3 /= "111") then
+        if (pc_hit = '1' and next_pc_addr = branch_address) then
+          -- Successful jump
+          njump := '0';
+          njump_address := (others => '0');
+        else
+          njump := '1';
+          njump_address := branch_address;
+        end if;
+      else
+        if (pc_hit = '1' and next_pc_addr = (std_logic_vector(unsigned(curr_pc_addr) + 1))) then
+          njump := '0';
+          njump_address := (others => '0');
+        else
           njump := '1';
           njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
         end if;
@@ -265,7 +288,7 @@ cache_values(15 downto 0) <= cache_addr;
 
 -- Process to determine state of cache
 process(op_code, cache_data, alu_output, is_jump, jump_stage, carry_logic, flag_condition,
-        next_pc_addr, pc_hit, pc_history, reset)
+        next_pc_addr, pc_hit, pc_history, reset, branch_address, writeA3, curr_pc_addr)
 variable ncache_write: std_logic;
 variable ncache_addr: std_logic_vector(15 downto 0);
 variable ncache_history: std_logic;
@@ -336,6 +359,7 @@ begin
     elsif (op_code = "1100") then
       -- BEQ Instruction
       if (alu_output = "0000000000000000") then
+        -- Branch taken case
         if (pc_hit = '1' and next_pc_addr = branch_address) then
         -- This is the case of a successful hit
           ncache_write := '0';
@@ -353,6 +377,25 @@ begin
         ncache_write := '1';
         ncache_addr := branch_address;
         ncache_history := '0';
+      end if;
+    elsif (op_code = "1000") then
+      -- JAL Instruction
+      if (writeA3 /= "111") then
+        -- Storage register is not R7
+        if (pc_hit = '1' and next_pc_addr = branch_address) then
+        -- This is the case of a successful hit
+          ncache_write := '0';
+          ncache_addr := (others => '0');
+          ncache_history := '0';
+        else
+          ncache_write := '1';
+          ncache_addr := branch_address;
+          ncache_history := '1';
+        end if;
+      else
+        ncache_write := '1';
+        ncache_addr := std_logic_vector(unsigned(curr_pc_addr) + 1);
+        ncache_history := '1';
       end if;
     else
       ncache_write := '0';

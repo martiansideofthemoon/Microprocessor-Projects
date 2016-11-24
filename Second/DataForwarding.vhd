@@ -83,7 +83,7 @@ begin
   nload5_read4_regA2 := '0';
 
   -- TODO :- BRANCH op_codes
-  -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW
+  -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW, BEQ
   if (stage4_opcode = "0000" or stage4_opcode = "0001" or
       stage4_opcode = "0010" or stage4_opcode = "0100" or
       stage4_opcode = "0101" or stage4_opcode = "0110" or
@@ -99,7 +99,7 @@ begin
   end if;
 
   -- TODO :- BRANCH op_codes
-  -- Current opcodes include all ADDs, NDUs, SW, SM
+  -- Current opcodes include all ADDs, NDUs, SW, SM, BEQ
   if (stage4_opcode = "0000" or stage4_opcode = "0010" or
       stage4_opcode = "0101" or stage4_opcode = "0111" or stage4_opcode = "1100") then
     if ((stage5_opcode = "0100" or stage5_opcode = "0110") and
@@ -149,7 +149,7 @@ begin
   nforward3_dataA2 := (others => '0');
 
   -- TODO :- BRANCH op_codes
-  -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW
+  -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW, BEQ
   if (stage3_opcode = "0000" or stage3_opcode = "0001" or
       stage3_opcode = "0010" or stage3_opcode = "0100" or
       stage3_opcode = "0101" or stage3_opcode = "0110" or
@@ -171,7 +171,7 @@ begin
   end if;
 
   -- TODO :- BRANCH op_codes
-  -- Current opcodes include all ADDs, NDUs, SW, SM
+  -- Current opcodes include all ADDs, NDUs, SW, SM, BEQ
   if (stage3_opcode = "0000" or stage3_opcode = "0010" or
       stage3_opcode = "0101" or stage3_opcode = "0111" or stage3_opcode = "1100") then
 
@@ -243,7 +243,7 @@ begin
   nforward4_dataA2 := (others => '0');
 
   -- TODO :- BRANCH op_codes
-  -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW
+  -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW, BEQ
   if (stage4_opcode = "0000" or stage4_opcode = "0001" or
       stage4_opcode = "0010" or stage4_opcode = "0100" or
       stage4_opcode = "0101" or stage4_opcode = "0110" or
@@ -271,9 +271,10 @@ begin
   end if;
 
   -- TODO :- BRANCH op_codes
-  -- Current opcodes include all ADDs, NDUs, SW, SM
+  -- Current opcodes include all ADDs, NDUs, SW, SM, BEQ
   if (stage4_opcode = "0000" or stage4_opcode = "0010" or
-      stage4_opcode = "0101" or stage4_opcode = "0111" stage4_opcode = "1100") then
+      stage4_opcode = "0101" or stage4_opcode = "0111" or
+      stage4_opcode = "1100") then
     if (stage5_regwrite = '1' and stage4_regA2 = stage5_writeA3) then
       nforward4_regA2 := '1';
       nforward4_dataA2 := stage5_data(15 downto 0);
