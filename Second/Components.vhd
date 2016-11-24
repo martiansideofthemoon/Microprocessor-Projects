@@ -341,6 +341,7 @@ package ProcessorComponents is
       cache_data: in std_logic_vector(21 downto 0);
       cache_prediction: in std_logic_vector(15 downto 0);
       memread: in std_logic_vector(15 downto 0);
+      writeA3: in std_logic_vector(2 downto 0);
       reset: in std_logic;
       jump: out std_logic;
       jump_address: out std_logic_vector(15 downto 0);
@@ -490,7 +491,7 @@ port (
 end entity KillStallInstruction;
 architecture Behave of KillStallInstruction is
 begin
--- Bit 14 set to one as we want R7_write
+-- Bit 14 set to zero as we want R7_write
 Decode_out <= (31 => '1', 30 => '1', 29 => '1', 28 => '1', others => '0');
 
 end Behave;

@@ -467,6 +467,7 @@ entity JumpMemStage is
     cache_data: in std_logic_vector(21 downto 0);
     cache_prediction: in std_logic_vector(15 downto 0);
     memread: in std_logic_vector(15 downto 0);
+    writeA3: in std_logic_vector(2 downto 0);
     reset: in std_logic;
     jump: out std_logic;
     jump_address: out std_logic_vector(15 downto 0);
@@ -491,7 +492,7 @@ next_pc_addr <= cache_prediction(15 downto 0);
 pc_hit <= cache_data(17);
 pc_history <= cache_data(16);
 -- Process to determine state of jump signals
-process(op_code, memread, is_jump, jump_stage, reset, pc_hit, next_pc_addr)
+process(op_code, memread, is_jump, jump_stage, reset, pc_hit, next_pc_addr, writeA3)
 variable njump: std_logic;
 variable njump_address: std_logic_vector(15 downto 0);
 begin
@@ -502,7 +503,7 @@ begin
     njump := '0';
     njump_address := (others => '0');
   else
-    if (op_code = "0100" or op_code = "0110") then
+    if (op_code = "0100" or (op_code = "0110" and writeA3 = "111")) then
       -- LW instruction with writeA3 = R7, LM with immediate(7) = 1
       if (pc_hit = '1' and next_pc_addr = memread) then
         -- Successful jump
@@ -531,7 +532,8 @@ cache_values(16) <= cache_history;
 cache_values(15 downto 0) <= cache_addr;
 
 -- Process to determine state of cache
-process(op_code, cache_data, memread, is_jump, jump_stage, next_pc_addr, pc_hit, pc_history, reset)
+process(op_code, cache_data, memread, is_jump, jump_stage, next_pc_addr,
+        pc_hit, pc_history, reset, writeA3)
 variable ncache_write: std_logic;
 variable ncache_addr: std_logic_vector(15 downto 0);
 variable ncache_history: std_logic;
@@ -545,7 +547,7 @@ begin
     ncache_addr := (others => '0');
     ncache_history := '0';
   else
-    if (op_code = "0100" or op_code = "0110") then
+    if (op_code = "0100" or (op_code = "0110" and writeA3 = "111")) then
       -- LW instruction with writeA3 = R7, LM with immediate(7) = 1
       if (pc_hit = '1' and next_pc_addr = memread) then
       -- This is the case of a successful hit

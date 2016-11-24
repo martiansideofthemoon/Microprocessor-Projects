@@ -114,6 +114,7 @@ architecture Mixed of Datapath is
   signal JUMP_STAGE4_ADDR: std_logic_vector(15 downto 0);
   signal TwosCmp_out: std_logic_vector(15 downto 0);
   signal PC_PLUS_ONE: std_logic_vector(15 downto 0);
+  signal REPEAT_LOAD5_READ4: std_logic_vector(DecodeSize-1 downto 0);
 ---------------FLAG FORWARDING SIGNALS-------------
   signal carry_forward: std_logic;
   signal carry_forward_val: std_logic;
@@ -673,9 +674,14 @@ INC2: Increment
                               P3_OUT(31 downto 28) = "1001" else P3_OUT(14);
   P4_IN_DUMMY(DecodeSize-1 downto 15) <= P3_OUT(DecodeSize-1 downto 15);
 
-  P4_IN <= P4_KILL when P3_OUT(34) = '1' and FINAL_CARRY(0) = '0' else
+  REPEAT_LOAD5_READ4(7 downto 0) <= P4_OUT(7 downto 0);
+  REPEAT_LOAD5_READ4(8) <= '0';
+  REPEAT_LOAD5_READ4(DecodeSize-1 downto 9) <= P4_OUT(DecodeSize-1 downto 9);
+
+  P4_IN <= REPEAT_LOAD5_READ4 when load5_read4 = '1' and (P4_OUT(13 downto 11) = "111") else
+           P4_KILL_STALL when kill_stage4 = '1' or load5_read4 = '1' else
+           P4_KILL when P3_OUT(34) = '1' and FINAL_CARRY(0) = '0' else
            P4_KILL when P3_OUT(35) = '1' and FINAL_ZERO(0) = '0' else
-           P4_KILL_STALL when load5_read4 = '1' or kill_stage4 = '1' else
            P4_IN_DUMMY;
 
   P4_DATA_IN(47 downto 32) <= P3_DATA_OUT(63 downto 48) when forward4_regA2 = '0' else FORWARD4_DATA2;
@@ -691,15 +697,18 @@ INC2: Increment
                               PC_PLUS_ONE when
                                 (P3_OUT(31 downto 28) = "1001" and P3_OUT(13 downto 11) = "111") else
                               P3_DATA_OUT(47 downto 32);
-  P4_DATA_IN(15 downto 0) <= PC_PLUS_ONE when P3_OUT(31 downto 28) = "1000" or
+  P4_DATA_IN(15 downto 0) <= P4_DATA_OUT(15 downto 0) when load5_read4 = '1' and (P4_OUT(13 downto 11) = "111") else
+                             PC_PLUS_ONE when P3_OUT(31 downto 28) = "1000" or
                                               P3_OUT(31 downto 28) = "1001" else
                              ALU_OUT;
 
 
   P4_FLAG_IN(1) <= ALU_carry;
   P4_FLAG_IN(0) <= ALU_zero;
-  P4_JUMP_DATA_IN <= P3_JUMP_DATA;
-  P4_CACHE_DATA_IN <= (others => '0') when load5_read4 = '1' or kill_stage4 = '1' else
+  P4_JUMP_DATA_IN <=  P4_JUMP_DATA when load5_read4 = '1' and (P4_OUT(13 downto 11) = "111") else
+                      P3_JUMP_DATA;
+  P4_CACHE_DATA_IN <= P4_CACHE_DATA when load5_read4 = '1' and (P4_OUT(13 downto 11) = "111") else
+                      (others => '0') when load5_read4 = '1' or kill_stage4 = '1' else
                       P4_CACHE_VALUES when P3_JUMP_DATA(21 downto 19) = "100" else
                       P3_CACHE_DATA;
 ----------------------------------------------------
@@ -780,6 +789,7 @@ INC2: Increment
       cache_data => P4_JUMP_DATA(21 downto 0),
       cache_prediction => P4_DATA_OUT(31 downto 16),
       memread => MEM_OUT,
+      writeA3 => P4_OUT(13 downto 11),
       reset => reset,
       jump => jump_stage5,
       jump_address => JUMP_STAGE5_ADDR,
