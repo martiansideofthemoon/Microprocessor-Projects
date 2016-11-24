@@ -138,6 +138,7 @@ architecture Mixed of Datapath is
 ---------------------------------------------------
   signal p4_enable: std_logic;
   signal P4_IN: std_logic_vector(DecodeSize-1 downto 0);
+  signal P4_IN_DUMMY: std_logic_vector(DecodeSize-1 downto 0);
   signal P4_OUT: std_logic_vector(DecodeSize-1 downto 0);
   signal P4_DATA_IN: std_logic_vector(47 downto 0);
   signal P4_DATA_OUT: std_logic_vector(47 downto 0);
@@ -148,8 +149,8 @@ architecture Mixed of Datapath is
   signal P4_CACHE_DATA_IN: std_logic_vector(17 downto 0);
   signal P4_CACHE_DATA: std_logic_vector(17 downto 0);
   signal P4_CACHE_VALUES: std_logic_vector(17 downto 0);
-  signal P4_JUMP_DATA_IN: std_logic_vector(21 downto 0);
-  signal P4_JUMP_DATA: std_logic_vector(21 downto 0);
+  signal P4_JUMP_DATA_IN: std_logic_vector(37 downto 0);
+  signal P4_JUMP_DATA: std_logic_vector(37 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 5 - MEMORY STAGE--------------------
@@ -171,8 +172,8 @@ architecture Mixed of Datapath is
   signal P5_CACHE_DATA_IN: std_logic_vector(17 downto 0);
   signal P5_CACHE_DATA: std_logic_vector(17 downto 0);
   signal P5_CACHE_VALUES: std_logic_vector(17 downto 0);
-  signal P5_JUMP_DATA_IN: std_logic_vector(21 downto 0);
-  signal P5_JUMP_DATA: std_logic_vector(21 downto 0);
+  signal P5_JUMP_DATA_IN: std_logic_vector(37 downto 0);
+  signal P5_JUMP_DATA: std_logic_vector(37 downto 0);
   signal P5_STALL_KILL: std_logic_vector(DecodeSize-1 downto 0);
 
 ---------------------------------------------------
@@ -650,16 +651,22 @@ JE: JumpExecuteStage
   FINAL_FLAG_CONDITION(0) <= FINAL_CARRY(0);
   FINAL_FLAG_CONDITION(1) <= FINAL_ZERO(0);
 
+-- dummy is specially for branch
+  P4_IN_DUMMY(13 downto 0) <= P3_OUT(13 downto 0);
+  P4_IN_DUMMY(14) <= '1' when P3_OUT(31 downto 28) = "1100" else P3_OUT(14);
+  P4_IN_DUMMY(DecodeSize-1 downto 15) <= P3_OUT(DecodeSize-1 downto 15);
+
   P4_IN <= P4_KILL when P3_OUT(34) = '1' and FINAL_CARRY(0) = '0' else
            P4_KILL when P3_OUT(35) = '1' and FINAL_ZERO(0) = '0' else
            P4_KILL_STALL when load5_read4 = '1' or kill_stage4 = '1' else
-           P3_OUT;
+           P4_IN_DUMMY;
+  
   P4_DATA_IN(47 downto 32) <= P3_DATA_OUT(63 downto 48) when forward4_regA2 = '0' else FORWARD4_DATA2;
-  P4_DATA_IN(31 downto 16) <= P3_DATA_OUT(47 downto 32);
+  P4_DATA_IN(31 downto 16) <= P3_JUMP_DATA(37 downto 22) when (P3_OUT(31 downto 28) = "1100" and ALU_OUT = "0000000000000000") else P3_DATA_OUT(47 downto 32);
   P4_DATA_IN(15 downto 0) <= ALU_OUT;
   P4_FLAG_IN(1) <= ALU_carry;
   P4_FLAG_IN(0) <= ALU_zero;
-  P4_JUMP_DATA_IN <= P3_JUMP_DATA(21 downto 0);
+  P4_JUMP_DATA_IN <= P3_JUMP_DATA;
   P4_CACHE_DATA_IN <= P4_CACHE_VALUES when P3_JUMP_DATA(21 downto 19) = "100" else
                       (others => '0') when load5_read4 = '1' or kill_stage4 = '1' else
                       P3_CACHE_DATA;
@@ -692,7 +699,7 @@ JE: JumpExecuteStage
         reset => reset
       );
   P4_jump: DataRegister
-      generic map(data_width => 22)
+      generic map(data_width => 38)
       port map (
         Din => P4_JUMP_DATA_IN,
         Dout => P4_JUMP_DATA,

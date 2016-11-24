@@ -354,7 +354,7 @@ begin
       reg_A3 <= "000";
       jump_stage <= "000";
     elsif (reset = '0' and op_code = "1100") then
-      -- Generic SM instruction
+      -- Generic BEQ instruction
       -- Signals for Register Read stage
       reg_A2 <=instruction(8 downto 6);
       reg_A1 <= instruction(11 downto 9);

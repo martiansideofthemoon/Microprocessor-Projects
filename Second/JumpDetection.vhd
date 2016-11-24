@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library work;
 use work.ProcessorComponents.all;
 
@@ -22,7 +23,8 @@ architecture Struct of JumpRegReadStage is
 signal is_jump: std_logic;
 signal jump_stage: std_logic_vector(2 downto 0);
 signal pc_hit: std_logic;
-signal pc_addr: std_logic_vector(15 downto 0);
+signal next_pc_addr: std_logic_vector(15 downto 0);
+signal curr_pc_addr: std_logic_vector(15 downto 0);
 signal pc_history: std_logic;
 signal cache_write: std_logic;
 signal cache_addr: std_logic_vector(15 downto 0);
@@ -30,11 +32,12 @@ signal cache_history: std_logic;
 begin
 is_jump <= cache_data(18);
 jump_stage <= cache_data(21 downto 19);
-pc_addr <= cache_prediction(15 downto 0);
+next_pc_addr <= cache_prediction(15 downto 0);
+curr_pc_addr <= cache_data(15 downto 0);
 pc_hit <= cache_data(17);
 pc_history <= cache_data(16);
 -- Process to determine state of jump signals
-process(op_code, new_pcval, is_jump, jump_stage, reset, pc_hit, pc_addr)
+process(op_code, new_pcval, is_jump, jump_stage, reset, pc_hit, next_pc_addr)
 variable njump: std_logic;
 variable njump_address: std_logic_vector(15 downto 0);
 begin
@@ -47,7 +50,7 @@ begin
   else
     if (op_code = "0011" ) then
       -- LHI instruction with writeA3 = R7
-      if (pc_hit = '1' and pc_addr = new_pcval) then
+      if (pc_hit = '1' and next_pc_addr = new_pcval) then
         -- Successful jump
         njump := '0';
         njump_address := (others => '0');
@@ -74,7 +77,7 @@ cache_values(16) <= cache_history;
 cache_values(15 downto 0) <= cache_addr;
 
 -- Process to determine state of cache
-process(op_code, cache_data, new_pcval, is_jump, jump_stage, pc_addr, pc_hit, pc_history, reset)
+process(op_code, cache_data, new_pcval, is_jump, jump_stage, next_pc_addr, pc_hit, pc_history, reset)
 variable ncache_write: std_logic;
 variable ncache_addr: std_logic_vector(15 downto 0);
 variable ncache_history: std_logic;
@@ -90,7 +93,7 @@ begin
   else
     if (op_code = "0011") then
       -- LHI instruction with writeA3 = R7
-      if (pc_hit = '1' and pc_addr = new_pcval) then
+      if (pc_hit = '1' and next_pc_addr = new_pcval) then
       -- This is the case of a successful hit
         ncache_write := '0';
         ncache_addr := (others => '0');
@@ -121,6 +124,7 @@ end Struct;
 ----------------------------------------------Execute Stage----------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library work;
 use work.ProcessorComponents.all;
 
@@ -144,7 +148,8 @@ architecture Struct of JumpExecuteStage is
 signal is_jump: std_logic;
 signal jump_stage: std_logic_vector(2 downto 0);
 signal pc_hit: std_logic;
-signal pc_addr: std_logic_vector(15 downto 0);
+signal next_pc_addr: std_logic_vector(15 downto 0);
+signal curr_pc_addr: std_logic_vector(15 downto 0);
 signal pc_history: std_logic;
 signal cache_write: std_logic;
 signal cache_addr: std_logic_vector(15 downto 0);
@@ -152,11 +157,11 @@ signal cache_history: std_logic;
 begin
 is_jump <= cache_data(18);
 jump_stage <= cache_data(21 downto 19);
-pc_addr <= cache_prediction(15 downto 0);
+next_pc_addr <= cache_prediction(15 downto 0);
 pc_hit <= cache_data(17);
 pc_history <= cache_data(16);
 -- Process to determine state of jump signals
-process(op_code, alu_output, is_jump, jump_stage, carry_logic, flag_condition, reset, pc_hit, pc_addr)
+process(op_code, alu_output, is_jump, jump_stage, carry_logic, flag_condition, reset, pc_hit, next_pc_addr)
 variable njump: std_logic;
 variable njump_address: std_logic_vector(15 downto 0);
 begin
@@ -169,7 +174,7 @@ begin
   else
     if (((op_code = "0000" or op_code = "0010") and carry_logic = "00") or op_code = "0001" ) then
       -- ADD / NDU / ADI instruction with writeA3 = R7
-      if (pc_hit = '1' and pc_addr = alu_output) then
+      if (pc_hit = '1' and next_pc_addr = alu_output) then
         -- Successful jump
         njump := '0';
         njump_address := (others => '0');
@@ -181,7 +186,7 @@ begin
       -- ADC / NDC instruction with writeA3 = R7
       if (flag_condition(0) = '1') then
         --checks if carry is high
-        if (pc_hit = '1' and pc_addr = alu_output) then
+        if (pc_hit = '1' and next_pc_addr = alu_output) then
           -- Successful jump
           njump := '0';
           njump_address := (others => '0');
@@ -190,14 +195,14 @@ begin
           njump_address := alu_output;
         end if;
       else
-        njump := '0';
-        njump_address := (others => '0');
+        njump := '1';
+        njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
       end if;
     elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "10") then
       -- ADZ / NDZ instruction with writeA3 = R7
       if (flag_condition(1) = '1') then
         --checks if zero is high
-        if (pc_hit = '1' and pc_addr = alu_output) then
+        if (pc_hit = '1' and next_pc_addr = alu_output) then
           -- Successful jump
           njump := '0';
           njump_address := (others => '0');
@@ -206,8 +211,24 @@ begin
           njump_address := alu_output;
         end if;
       else
-        njump := '0';
-        njump_address := (others => '0');
+        njump := '1';
+        njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
+      end if;
+    elsif (op_code = "1100") then
+      -- BEQ instruction
+      if (alu_output = "0000000000000000") then
+        --checks if zero is high
+        if (pc_hit = '1' and next_pc_addr = branch_address) then
+          -- Successful jump
+          njump := '0';
+          njump_address := (others => '0');
+        else
+          njump := '1';
+          njump_address := branch_address;
+        end if;
+      else
+        njump := '1';
+        njump_address := std_logic_vector(unsigned(curr_pc_addr) + 1);
       end if;
     else
       njump := '0';
@@ -229,7 +250,7 @@ cache_values(15 downto 0) <= cache_addr;
 
 -- Process to determine state of cache
 process(op_code, cache_data, alu_output, is_jump, jump_stage, carry_logic, flag_condition,
-        pc_addr, pc_hit, pc_history, reset)
+        next_pc_addr, pc_hit, pc_history, reset)
 variable ncache_write: std_logic;
 variable ncache_addr: std_logic_vector(15 downto 0);
 variable ncache_history: std_logic;
@@ -245,7 +266,7 @@ begin
   else
     if (((op_code = "0000" or op_code = "0010") and carry_logic = "00") or op_code = "0001") then
       -- ADD/NDU/ADI instruction with writeA3 = R7
-      if (pc_hit = '1' and pc_addr = alu_output) then
+      if (pc_hit = '1' and next_pc_addr = alu_output) then
       -- This is the case of a successful hit
         ncache_write := '0';
         ncache_addr := (others => '0');
@@ -258,7 +279,7 @@ begin
     elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "01") then
       -- ADC/NDC instruction with writeA3 = R7
       if (flag_condition(0) = '1') then
-        if (pc_hit = '1' and pc_addr = alu_output) then
+        if (pc_hit = '1' and next_pc_addr = alu_output) then
         -- This is the case of a successful hit
           ncache_write := '0';
           ncache_addr := (others => '0');
@@ -279,7 +300,7 @@ begin
     elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "10") then
       -- ADZ/NDZ instruction with writeA3 = R7
       if (flag_condition(1) = '1') then
-        if (pc_hit = '1' and pc_addr = alu_output) then
+        if (pc_hit = '1' and next_pc_addr = alu_output) then
         -- This is the case of a successful hit
           ncache_write := '0';
           ncache_addr := (others => '0');
@@ -299,8 +320,8 @@ begin
       end if;
     elsif (op_code = "1100") then
       -- BEQ Instruction
-      if (flag_condition(1) = '1') then
-        if (pc_hit = '1' and pc_addr = branch_address) then
+      if (alu_output = "0000000000000000") then
+        if (pc_hit = '1' and next_pc_addr = branch_address) then
         -- This is the case of a successful hit
           ncache_write := '0';
           ncache_addr := (others => '0');
@@ -339,6 +360,7 @@ end Struct;
 ----------------------------------------------MemStage----------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 library work;
 use work.ProcessorComponents.all;
 
@@ -359,7 +381,8 @@ architecture Struct of JumpMemStage is
 signal is_jump: std_logic;
 signal jump_stage: std_logic_vector(2 downto 0);
 signal pc_hit: std_logic;
-signal pc_addr: std_logic_vector(15 downto 0);
+signal next_pc_addr: std_logic_vector(15 downto 0);
+signal curr_pc_addr: std_logic_vector(15 downto 0);
 signal pc_history: std_logic;
 signal cache_write: std_logic;
 signal cache_addr: std_logic_vector(15 downto 0);
@@ -367,11 +390,11 @@ signal cache_history: std_logic;
 begin
 is_jump <= cache_data(18);
 jump_stage <= cache_data(21 downto 19);
-pc_addr <= cache_prediction(15 downto 0);
+next_pc_addr <= cache_prediction(15 downto 0);
 pc_hit <= cache_data(17);
 pc_history <= cache_data(16);
 -- Process to determine state of jump signals
-process(op_code, memread, is_jump, jump_stage, reset, pc_hit, pc_addr)
+process(op_code, memread, is_jump, jump_stage, reset, pc_hit, next_pc_addr)
 variable njump: std_logic;
 variable njump_address: std_logic_vector(15 downto 0);
 begin
@@ -384,7 +407,7 @@ begin
   else
     if (op_code = "0100" or op_code = "0110") then
       -- LW instruction with writeA3 = R7, LM with immediate(7) = 1
-      if (pc_hit = '1' and pc_addr = memread) then
+      if (pc_hit = '1' and next_pc_addr = memread) then
         -- Successful jump
         njump := '0';
         njump_address := (others => '0');
@@ -411,7 +434,7 @@ cache_values(16) <= cache_history;
 cache_values(15 downto 0) <= cache_addr;
 
 -- Process to determine state of cache
-process(op_code, cache_data, memread, is_jump, jump_stage, pc_addr, pc_hit, pc_history, reset)
+process(op_code, cache_data, memread, is_jump, jump_stage, next_pc_addr, pc_hit, pc_history, reset)
 variable ncache_write: std_logic;
 variable ncache_addr: std_logic_vector(15 downto 0);
 variable ncache_history: std_logic;
@@ -427,7 +450,7 @@ begin
   else
     if (op_code = "0100" or op_code = "0110") then
       -- LW instruction with writeA3 = R7, LM with immediate(7) = 1
-      if (pc_hit = '1' and pc_addr = memread) then
+      if (pc_hit = '1' and next_pc_addr = memread) then
       -- This is the case of a successful hit
         ncache_write := '0';
         ncache_addr := (others => '0');
