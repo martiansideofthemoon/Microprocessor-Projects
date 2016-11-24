@@ -57,8 +57,8 @@ begin
 
   process
     variable err_flag : boolean := false;
-    File INFILE: text open read_mode is "abc.hex";
-    FILE OUTFILE: text  open write_mode is "Outputs/output_memory.txt";
+    --File INFILE: text open read_mode is "abc.hex";
+    --FILE OUTFILE: text  open write_mode is "Outputs/output_memory.txt";
 
     ---------------------------------------------------
     -- edit the next few lines to customize

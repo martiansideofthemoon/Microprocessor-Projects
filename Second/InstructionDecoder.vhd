@@ -268,7 +268,7 @@ begin
       set_carry <= '0';
       set_zero <= '0';
       reg_A3 <= instruction(11 downto 9);
-      jump_stage <= "100";
+      jump_stage <= "011";
     elsif (reset = '0' and op_code = "0100") then
       -- Generic LW instruction
       -- Signals for Register Read stage

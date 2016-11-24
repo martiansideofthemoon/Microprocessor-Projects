@@ -305,6 +305,19 @@ package ProcessorComponents is
   );
   end component PCForwarding;
 
+  component JumpRegReadStage is
+    port (
+      op_code: in std_logic_vector(3 downto 0);
+      cache_data: in std_logic_vector(21 downto 0);
+      cache_prediction: in std_logic_vector(15 downto 0);
+      new_pcval: in std_logic_vector(15 downto 0);
+      reset: in std_logic;
+      jump: out std_logic;
+      jump_address: out std_logic_vector(15 downto 0);
+      cache_values: out std_logic_vector(17 downto 0)
+    );
+  end component;
+
   component JumpExecuteStage is
     port (
       op_code: in std_logic_vector(3 downto 0);
@@ -313,6 +326,19 @@ package ProcessorComponents is
       cache_prediction: in std_logic_vector(15 downto 0);
       alu_output: in std_logic_vector(15 downto 0);
       flag_condition: in std_logic_vector(1 downto 0);
+      reset: in std_logic;
+      jump: out std_logic;
+      jump_address: out std_logic_vector(15 downto 0);
+      cache_values: out std_logic_vector(17 downto 0)
+    );
+  end component;
+
+  component JumpMemStage is
+    port (
+      op_code: in std_logic_vector(3 downto 0);
+      cache_data: in std_logic_vector(21 downto 0);
+      cache_prediction: in std_logic_vector(15 downto 0);
+      memread: in std_logic_vector(15 downto 0);
       reset: in std_logic;
       jump: out std_logic;
       jump_address: out std_logic_vector(15 downto 0);

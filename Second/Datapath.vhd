@@ -92,6 +92,7 @@ architecture Mixed of Datapath is
   signal P3_JUMP_DATA: std_logic_vector(21 downto 0);
   signal P3_CACHE_DATA_IN: std_logic_vector(17 downto 0);
   signal P3_CACHE_DATA: std_logic_vector(17 downto 0);
+  signal P3_CACHE_VALUES: std_logic_vector(17 downto 0);
   signal P3_STALL_KILL: std_logic_vector(DecodeSize-1 downto 0);
 
 ---------------------------------------------------
@@ -165,8 +166,10 @@ architecture Mixed of Datapath is
   signal P5_FLAG_OUT: std_logic_vector(1 downto 0);
   signal P5_CACHE_DATA_IN: std_logic_vector(17 downto 0);
   signal P5_CACHE_DATA: std_logic_vector(17 downto 0);
+  signal P5_CACHE_VALUES: std_logic_vector(17 downto 0);
   signal P5_JUMP_DATA_IN: std_logic_vector(21 downto 0);
   signal P5_JUMP_DATA: std_logic_vector(21 downto 0);
+  signal P5_STALL_KILL: std_logic_vector(DecodeSize-1 downto 0);
 
 ---------------------------------------------------
 ---------STAGE 6 - WRITE STAGE---------------------
@@ -430,6 +433,18 @@ begin
         Decode_out => P3_STALL_KILL
       );
 
+  JRR: JumpRegReadStage
+    port map (
+      op_code => P2_OUT(31 downto 28),
+      cache_data => P2_JUMP_DATA(21 downto 0),
+      cache_prediction => P2_DATA_OUT(15 downto 0),
+      new_pcval => ZERO_PAD9,
+      reset => reset,
+      jump => jump_stage3,
+      jump_address => JUMP_STAGE3_ADDR,
+      cache_values => P3_CACHE_VALUES
+    );
+
 
   P3_IN <= P2_OUT when kill_stage3 = '0' else P3_STALL_KILL;
   FINAL_DATA1 <= DATA1 when forward3_regA1 = '0' else FORWARD3_DATA1;
@@ -445,7 +460,9 @@ begin
                              ZERO_PAD9 when P2_OUT(25 downto 24) = "10" else
                              P2_DATA_OUT(31 downto 16) when P2_OUT(25 downto 24) = "11";
   P3_JUMP_DATA_IN(21 downto 0) <= P2_JUMP_DATA;
-  P3_CACHE_DATA_IN <= P2_CACHE_DATA when kill_stage3 = '0' else (others => '0');
+  P3_CACHE_DATA_IN <= P3_CACHE_VALUES when P2_JUMP_DATA(21 downto 19) = "011" else
+                      P2_CACHE_DATA when kill_stage3 = '0' else 
+                      (others => '0');
 ----------------------------------------------------
   P3: DataRegister
       generic map (data_width => DecodeSize)
@@ -688,13 +705,31 @@ JE: JumpExecuteStage
       );
   mem_load_zero <= '1' when MEM_OUT = "0000000000000000" else '0';
 
+  KillStage5: KillStallInstruction
+    port map (
+        Decode_in => P4_OUT,
+        Decode_out => P5_STALL_KILL
+      );
+
+  JM: JumpMemStage
+    port map (
+      op_code => P4_OUT(31 downto 28),
+      cache_data => P4_JUMP_DATA(21 downto 0),
+      cache_prediction => P4_DATA_OUT(31 downto 16),
+      memread => MEM_OUT,
+      reset => reset,
+      jump => jump_stage5,
+      jump_address => JUMP_STAGE5_ADDR,
+      cache_values => P5_CACHE_VALUES
+    );
+
   P5_IN <= P4_OUT;
   P5_DATA_IN(47 downto 32) <= P4_DATA_OUT(31 downto 16);
   P5_DATA_IN(31 downto 16) <= MEM_OUT;
   P5_DATA_IN(15 downto 0) <= P4_DATA_OUT(15 downto 0);
   P5_FLAG_IN(1) <= P4_FLAG_OUT(1);
   P5_FLAG_IN(0) <= mem_load_zero when P4_OUT(31 downto 28) = "0100" else P4_FLAG_OUT(0);
-  P5_CACHE_DATA_IN <= P4_CACHE_DATA;
+  P5_CACHE_DATA_IN <= P5_CACHE_VALUES when P3_JUMP_DATA(21 downto 19) = "101" else P4_CACHE_DATA;
   P5_JUMP_DATA_IN <= P4_JUMP_DATA;
 ---------------------------------------------------
   P5: DataRegister
