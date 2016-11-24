@@ -190,7 +190,7 @@ begin
         end if;
       else
         njump := '0';
-        njump_address := (others => '0'); 
+        njump_address := (others => '0');
       end if;
     elsif ((op_code = "0000" or op_code = "0010") and carry_logic = "10") then
       -- ADZ / NDZ instruction with writeA3 = R7
@@ -206,7 +206,7 @@ begin
         end if;
       else
         njump := '0';
-        njump_address := (others => '0'); 
+        njump_address := (others => '0');
       end if;
     else
       njump := '0';
@@ -268,7 +268,7 @@ begin
           ncache_history := '1';
         end if;
       else
-      -- here the flag gives false hence branch must not be taken, 
+      -- here the flag gives false hence branch must not be taken,
       -- so history bit updated if pc_hit='1' and other values overwritten again
       -- if pc_hit='0', value written to cache and history bit set to 0
         ncache_write := '1';
@@ -289,7 +289,7 @@ begin
           ncache_history := '1';
         end if;
       else
-      -- here the flag gives false hence branch must not be taken, 
+      -- here the flag gives false hence branch must not be taken,
       -- so history bit updated if pc_hit='1' and other values overwritten again
       -- if pc_hit='0', value written to cache and history bit set to 0
         ncache_write := '1';
