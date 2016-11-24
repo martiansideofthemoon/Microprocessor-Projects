@@ -325,6 +325,7 @@ package ProcessorComponents is
       cache_data: in std_logic_vector(21 downto 0);
       cache_prediction: in std_logic_vector(15 downto 0);
       alu_output: in std_logic_vector(15 downto 0);
+      branch_address: in std_logic_vector(15 downto 0);
       flag_condition: in std_logic_vector(1 downto 0);
       reset: in std_logic;
       jump: out std_logic;

@@ -82,14 +82,17 @@ architecture Mixed of Datapath is
   signal kill_stage3: std_logic;
   signal jump_stage3: std_logic;
   signal JUMP_STAGE3_ADDR: std_logic_vector(15 downto 0);
+  signal BRANCH_ADDR: std_logic_vector(15 downto 0);
+  signal BRANCH_Carry: std_logic;
+  signal BRANCH_Zero: std_logic;
 ---------------------------------------------------
   signal p3_enable: std_logic;
   signal P3_IN: std_logic_vector(DecodeSize-1 downto 0);
   signal P3_OUT: std_logic_vector(DecodeSize-1 downto 0);
   signal P3_DATA_IN: std_logic_vector(63 downto 0);
   signal P3_DATA_OUT: std_logic_vector(63 downto 0);
-  signal P3_JUMP_DATA_IN: std_logic_vector(21 downto 0);
-  signal P3_JUMP_DATA: std_logic_vector(21 downto 0);
+  signal P3_JUMP_DATA_IN: std_logic_vector(37 downto 0);
+  signal P3_JUMP_DATA: std_logic_vector(37 downto 0);
   signal P3_CACHE_DATA_IN: std_logic_vector(17 downto 0);
   signal P3_CACHE_DATA: std_logic_vector(17 downto 0);
   signal P3_CACHE_VALUES: std_logic_vector(17 downto 0);
@@ -108,6 +111,7 @@ architecture Mixed of Datapath is
   signal kill_stage4: std_logic;
   signal jump_stage4: std_logic;
   signal JUMP_STAGE4_ADDR: std_logic_vector(15 downto 0);
+  signal TwosCmp_out: std_logic_vector(15 downto 0);
 ---------------FLAG FORWARDING SIGNALS-------------
   signal carry_forward: std_logic;
   signal carry_forward_val: std_logic;
@@ -433,6 +437,23 @@ begin
         Decode_out => P3_STALL_KILL
       );
 
+
+  TwoCmp: TwosComplement
+      port map (
+        input => FINAL_DATA1,
+        output => TwosCmp_out
+      );
+
+  AL_BEQ: ALU
+      port map (
+        alu_in_1 => SE6_OUT,
+        alu_in_2 => P2_JUMP_DATA(15 downto 0),
+        op_in => '0',
+        alu_out => BRANCH_ADDR,
+        carry => BRANCH_Carry,
+        zero => BRANCH_Zero
+      );
+
   JRR: JumpRegReadStage
     port map (
       op_code => P2_OUT(31 downto 28),
@@ -454,12 +475,14 @@ begin
   P3_DATA_IN(63 downto 48) <= FINAL_DATA2;
   P3_DATA_IN(47 downto 32) <= P2_DATA_OUT(15 downto 0);
   P3_DATA_IN(31 downto 16) <= FINAL_DATA1 when P2_OUT(27 downto 26) = "00" else
+                              TwosCmp_out when P2_OUT(27 downto 26) = "01" else
                               CONST_0;
   P3_DATA_IN(15 downto 0) <= SE6_OUT when P2_OUT(25 downto 24) = "01" else
                              FINAL_DATA2 when P2_OUT(25 downto 24) = "00" else
                              ZERO_PAD9 when P2_OUT(25 downto 24) = "10" else
                              P2_DATA_OUT(31 downto 16) when P2_OUT(25 downto 24) = "11";
   P3_JUMP_DATA_IN(21 downto 0) <= P2_JUMP_DATA;
+  P3_JUMP_DATA_IN(37 downto 22) <= BRANCH_ADDR;
   P3_CACHE_DATA_IN <= P3_CACHE_VALUES when P2_JUMP_DATA(21 downto 19) = "011" else
                       P2_CACHE_DATA when kill_stage3 = '0' else 
                       (others => '0');
@@ -483,7 +506,7 @@ begin
         reset => reset
       );
   P3_jump: DataRegister
-      generic map(data_width => 22)
+      generic map(data_width => 38)
       port map (
         Din => P3_JUMP_DATA_IN,
         Dout => P3_JUMP_DATA,
@@ -603,6 +626,7 @@ JE: JumpExecuteStage
       cache_data => P3_JUMP_DATA(21 downto 0),
       cache_prediction => P3_DATA_OUT(47 downto 32),
       alu_output => ALU_OUT,
+      branch_address => P3_JUMP_DATA(37 downto 22),
       flag_condition => FINAL_FLAG_CONDITION,
       reset => reset,
       jump => jump_stage4,
@@ -635,7 +659,7 @@ JE: JumpExecuteStage
   P4_DATA_IN(15 downto 0) <= ALU_OUT;
   P4_FLAG_IN(1) <= ALU_carry;
   P4_FLAG_IN(0) <= ALU_zero;
-  P4_JUMP_DATA_IN <= P3_JUMP_DATA;
+  P4_JUMP_DATA_IN <= P3_JUMP_DATA(21 downto 0);
   P4_CACHE_DATA_IN <= P4_CACHE_VALUES when P3_JUMP_DATA(21 downto 19) = "100" else
                       (others => '0') when load5_read4 = '1' or kill_stage4 = '1' else
                       P3_CACHE_DATA;

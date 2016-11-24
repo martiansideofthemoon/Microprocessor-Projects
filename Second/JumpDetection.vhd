@@ -131,6 +131,7 @@ entity JumpExecuteStage is
     cache_data: in std_logic_vector(21 downto 0);
     cache_prediction: in std_logic_vector(15 downto 0);
     alu_output: in std_logic_vector(15 downto 0);
+    branch_address: in std_logic_vector(15 downto 0);
     flag_condition: in std_logic_vector(1 downto 0);
     reset: in std_logic;
     jump: out std_logic;
@@ -294,6 +295,27 @@ begin
       -- if pc_hit='0', value written to cache and history bit set to 0
         ncache_write := '1';
         ncache_addr := alu_output;
+        ncache_history := '0';
+      end if;
+    elsif (op_code = "1100") then
+      -- BEQ Instruction
+      if (flag_condition(1) = '1') then
+        if (pc_hit = '1' and pc_addr = branch_address) then
+        -- This is the case of a successful hit
+          ncache_write := '0';
+          ncache_addr := (others => '0');
+          ncache_history := '0';
+        else
+          ncache_write := '1';
+          ncache_addr := branch_address;
+          ncache_history := '1';
+        end if;
+      else
+      -- here the flag gives false hence branch must not be taken,
+      -- so history bit updated if pc_hit='1' and other values overwritten again
+      -- if pc_hit='0', value written to cache and history bit set to 0
+        ncache_write := '1';
+        ncache_addr := branch_address;
         ncache_history := '0';
       end if;
     else
