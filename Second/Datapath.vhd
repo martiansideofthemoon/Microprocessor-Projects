@@ -112,9 +112,10 @@ architecture Mixed of Datapath is
   signal kill_stage4: std_logic;
   signal jump_stage4: std_logic;
   signal JUMP_STAGE4_ADDR: std_logic_vector(15 downto 0);
-  signal TwosCmp_out: std_logic_vector(15 downto 0);
   signal PC_PLUS_ONE: std_logic_vector(15 downto 0);
   signal REPEAT_LOAD5_READ4: std_logic_vector(DecodeSize-1 downto 0);
+  signal FINAL_ALU1_IN: std_logic_vector(15 downto 0);
+  signal ALU1_IN_TWOCMP: std_logic_vector(15 downto 0);
 ---------------FLAG FORWARDING SIGNALS-------------
   signal carry_forward: std_logic;
   signal carry_forward_val: std_logic;
@@ -447,13 +448,6 @@ begin
         Decode_out => P3_STALL_KILL
       );
 
-
-  TwoCmp: TwosComplement
-      port map (
-        input => FINAL_DATA1,
-        output => TwosCmp_out
-      );
-
   ALU_JUMP_IN1 <= SE9_OUT when P2_OUT(31 downto 28) = "1000" else SE6_OUT;
   AL_JUMP: ALU
       port map (
@@ -486,7 +480,6 @@ begin
   P3_DATA_IN(63 downto 48) <= FINAL_DATA2;
   P3_DATA_IN(47 downto 32) <= P2_DATA_OUT(15 downto 0);
   P3_DATA_IN(31 downto 16) <= FINAL_DATA1 when P2_OUT(27 downto 26) = "00" else
-                              TwosCmp_out when P2_OUT(27 downto 26) = "01" else
                               CONST_0;
   P3_DATA_IN(15 downto 0) <= SE6_OUT when P2_OUT(25 downto 24) = "01" else
                              FINAL_DATA2 when P2_OUT(25 downto 24) = "00" else
@@ -573,9 +566,15 @@ begin
              FORWARD4_DATA2 when forward4_regA2 = '1' and
                                  P3_OUT(25 downto 24) = "00" else
              P3_DATA_OUT(15 downto 0);
+  TwoCmp: TwosComplement
+    port map (
+      input => ALU1_IN,
+      output => ALU1_IN_TWOCMP
+    );
+  FINAL_ALU1_IN <= ALU1_IN_TWOCMP when P3_OUT(31 downto 28) = "1100" else ALU1_IN;
   AL: ALU
       port map (
-        alu_in_1 => ALU1_IN,
+        alu_in_1 => FINAL_ALU1_IN,
         alu_in_2 => ALU2_IN,
         op_in => P3_OUT(6),
         alu_out => ALU_OUT,

@@ -361,7 +361,7 @@ begin
       carry_check <= '0';
       zero_check <= '0';
       alu2_select <= "00";
-      alu1_select <= "01"; -- for subtract
+      alu1_select <= "00"; -- for subtract
       immediate <= instruction(8 downto 0);
       -- Signals for Execute stage
       alu_op <= '0';

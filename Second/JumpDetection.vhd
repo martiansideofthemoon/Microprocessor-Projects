@@ -177,7 +177,7 @@ begin
   else
     if (((op_code = "0000" or op_code = "0010") and carry_logic = "00") or op_code = "0001" ) then
       -- ADD / NDU / ADI instruction with writeA3 = R7
-      if (pc_hit = '1' and next_pc_addr = alu_output) then
+      if (next_pc_addr = alu_output) then
         -- Successful jump
         njump := '0';
         njump_address := (others => '0');
@@ -231,7 +231,7 @@ begin
       -- BEQ instruction
       if (alu_output = "0000000000000000") then
         --checks if zero is high
-        if (pc_hit = '1' and next_pc_addr = branch_address) then
+        if (next_pc_addr = branch_address) then
           -- Successful jump
           njump := '0';
           njump_address := (others => '0');
@@ -240,7 +240,7 @@ begin
           njump_address := branch_address;
         end if;
       else
-        if (pc_hit = '1' and pc_history = '0') then
+        if (next_pc_addr = std_logic_vector(unsigned(curr_pc_addr) + 1)) then
           njump := '0';
           njump_address := (others => '0');
         else
