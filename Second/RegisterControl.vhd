@@ -7,6 +7,10 @@ entity RegisterControl is
     instruction: in std_logic_vector(15 downto 0);
     pl_input_zero: in std_logic;
     load5_read4: in std_logic;
+    kill_stage1: in std_logic;
+    kill_stage2: in std_logic;
+    kill_stage3: in std_logic;
+    kill_stage4: in std_logic;
     pc_enable: out std_logic;
     p1_enable: out std_logic;
     p2_enable: out std_logic;
@@ -123,7 +127,7 @@ begin
 end process;
 
 
-process(enable_signals)
+process(enable_signals, kill_stage1, kill_stage2, kill_stage3, kill_stage4)
   variable npc_enable: std_logic;
   variable np1_enable: std_logic;
   variable np2_enable: std_logic;
@@ -186,6 +190,22 @@ begin
     np3_enable := '1';
     np4_enable := '1';
     np5_enable := '1';
+  end if;
+
+  if kill_stage1 = '1' then
+    npc_enable := '1';
+  end if;
+
+  if kill_stage2 = '1' then
+    np1_enable := '1';
+  end if;
+
+  if kill_stage3 = '1' then
+    np2_enable := '1';
+  end if;
+
+  if kill_stage4 = '1' then
+    np3_enable := '1';
   end if;
 
   if reset = '1' then

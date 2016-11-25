@@ -262,6 +262,10 @@ package ProcessorComponents is
       instruction: in std_logic_vector(15 downto 0);
       pl_input_zero: in std_logic;
       load5_read4: in std_logic;
+      kill_stage1: in std_logic;
+      kill_stage2: in std_logic;
+      kill_stage3: in std_logic;
+      kill_stage4: in std_logic;
       pc_enable: out std_logic;
       p1_enable: out std_logic;
       p2_enable: out std_logic;
