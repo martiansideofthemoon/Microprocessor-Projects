@@ -133,11 +133,17 @@ architecture Mixed of Datapath is
   signal FORWARD3_DATA2: std_logic_vector(15 downto 0);
   signal FORWARD4_DATA1: std_logic_vector(15 downto 0);
   signal FORWARD4_DATA2: std_logic_vector(15 downto 0);
+  signal FORWARD4_STAGE1: std_logic_vector(2 downto 0);
+  signal FORWARD4_STAGE2: std_logic_vector(2 downto 0);
   signal load5_read4: std_logic;
   signal forward3_regA1: std_logic;
   signal forward3_regA2: std_logic;
   signal forward4_regA1: std_logic;
   signal forward4_regA2: std_logic;
+  signal TEMP2_DATA_IN: std_logic_vector(1 downto 0);
+  signal TEMP2_DATA_OUT: std_logic_vector(1 downto 0);
+  signal TEMP_DATA_IN: std_logic_vector(15 downto 0);
+  signal TEMP_DATA_OUT: std_logic_vector(15 downto 0);
 ---------------------------------------------------
   signal p4_enable: std_logic;
   signal P4_IN: std_logic_vector(DecodeSize-1 downto 0);
@@ -529,15 +535,44 @@ begin
         clk => clk,
         reset => reset
       );
+  TEMP_DATA_IN <= FORWARD4_DATA1 when FORWARD4_STAGE1 = "110" else
+                  FORWARD4_DATA2 when FORWARD4_STAGE2 = "110" else
+                  (others => '0');
+  TEMP2_DATA_IN(0) <= '1' when load5_read4 = '1' and forward4_regA1 = '1' and FORWARD4_STAGE1 = "110" else
+                      '1' when load5_read4 = '1' and forward4_regA2 = '1' and FORWARD4_STAGE2 = "110" else
+                      '0';
+  TEMP2_DATA_IN(1) <= '1' when forward4_regA1 = '1' and FORWARD4_STAGE1 = "110" else
+                      '0' when forward4_regA2 = '1' and FORWARD4_STAGE2 = "110" else
+                      '0';
+  TEMP1: DataRegister
+      generic map(data_width => 16)
+      port map (
+        Din => TEMP_DATA_IN,
+        Dout => TEMP_DATA_OUT,
+        Enable => '1',
+        clk => clk,
+        reset => reset
+      );
+  TEMP2: DataRegister
+      generic map(data_width => 2)
+      port map (
+        Din => TEMP2_DATA_IN,
+        Dout => TEMP2_DATA_OUT,
+        Enable => '1',
+        clk => clk,
+        reset => reset
+      );
 
 ---------------------------------------------------
 ---------STAGE 4 - EXECUTE STAGE-------------------
-  ALU1_IN <= FORWARD4_DATA1 when forward4_regA1 = '1' and
+  ALU1_IN <= TEMP_DATA_OUT when TEMP2_DATA_OUT(0) = '1' and TEMP2_DATA_OUT(1) = '1' else
+             FORWARD4_DATA1 when forward4_regA1 = '1' and
                                  (P3_OUT(27 downto 26) = "00" or P3_OUT(27 downto 26) = "01") else
-                                 P3_DATA_OUT(31 downto 16);
-  ALU2_IN <= FORWARD4_DATA2 when forward4_regA2 = '1' and
+             P3_DATA_OUT(31 downto 16);
+  ALU2_IN <= TEMP_DATA_OUT when TEMP2_DATA_OUT(0) = '1' and TEMP2_DATA_OUT(1) = '0' else
+             FORWARD4_DATA2 when forward4_regA2 = '1' and
                                  P3_OUT(25 downto 24) = "00" else
-                                 P3_DATA_OUT(15 downto 0);
+             P3_DATA_OUT(15 downto 0);
   AL: ALU
       port map (
         alu_in_1 => ALU1_IN,
@@ -625,6 +660,8 @@ DF: DataForwarding
       forward4_regA2 => forward4_regA2,
       forward4_dataA1 => FORWARD4_DATA1,
       forward4_dataA2 => FORWARD4_DATA2,
+      forward4_stageA1 => FORWARD4_STAGE1,
+      forward4_stageA2 => FORWARD4_STAGE2,
     -- Reset Signal
       reset => reset
   );
@@ -684,7 +721,9 @@ INC2: Increment
            P4_KILL when P3_OUT(35) = '1' and FINAL_ZERO(0) = '0' else
            P4_IN_DUMMY;
 
-  P4_DATA_IN(47 downto 32) <= P3_DATA_OUT(63 downto 48) when forward4_regA2 = '0' else FORWARD4_DATA2;
+  P4_DATA_IN(47 downto 32) <= TEMP_DATA_OUT when TEMP2_DATA_OUT(0) = '1' and TEMP2_DATA_OUT(1) = '0' else
+                              P3_DATA_OUT(63 downto 48) when forward4_regA2 = '0' else
+                              FORWARD4_DATA2;
 
   P4_DATA_IN(31 downto 16) <= P3_JUMP_DATA(37 downto 22) when
                                 (P3_OUT(31 downto 28) = "1100" and ALU_OUT = "0000000000000000") else

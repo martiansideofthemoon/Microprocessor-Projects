@@ -248,6 +248,8 @@ package ProcessorComponents is
       -- Forward to Stage 4
       forward4_regA1: out std_logic;
       forward4_regA2: out std_logic;
+      forward4_stageA1: out std_logic_vector(2 downto 0);
+      forward4_stageA2: out std_logic_vector(2 downto 0);
       forward4_dataA1: out std_logic_vector(15 downto 0);
       forward4_dataA2: out std_logic_vector(15 downto 0);
       -- Reset Signal

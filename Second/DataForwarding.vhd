@@ -48,6 +48,8 @@ entity DataForwarding is
     -- Forward to Stage 4
     forward4_regA1: out std_logic;
     forward4_regA2: out std_logic;
+    forward4_stageA1: out std_logic_vector(2 downto 0);
+    forward4_stageA2: out std_logic_vector(2 downto 0);
     forward4_dataA1: out std_logic_vector(15 downto 0);
     forward4_dataA2: out std_logic_vector(15 downto 0);
     -- Reset Signal
@@ -221,6 +223,9 @@ process(stage4_signals, stage5_signals, stage6_signals, stage5_data, stage6_data
   variable nforward4_dataA1: std_logic_vector(15 downto 0);
   variable nforward4_regA2: std_logic;
   variable nforward4_dataA2: std_logic_vector(15 downto 0);
+
+  variable nforward4_stageA1: std_logic_vector(2 downto 0);
+  variable nforward4_stageA2: std_logic_vector(2 downto 0);
 begin
   stage4_opcode := stage4_signals(9 downto 6);
   stage4_regA1 := stage4_signals(5 downto 3);
@@ -240,6 +245,9 @@ begin
   nforward4_regA2 := '0';
   nforward4_dataA2 := (others => '0');
 
+  nforward4_stageA1 := (others => '0');
+  nforward4_stageA2 := (others => '0');
+
   -- Current opcodes include all ADDs, NDUs, LM, SM, LW, SW, BEQ
   if (stage4_opcode = "0000" or stage4_opcode = "0001" or
       stage4_opcode = "0010" or stage4_opcode = "0100" or
@@ -249,22 +257,28 @@ begin
     if (stage5_regwrite = '1' and stage4_regA1 = stage5_writeA3) then
       nforward4_regA1 := '1';
       nforward4_dataA1 := stage5_data(15 downto 0);
+      nforward4_stageA1 := "101";
     elsif (stage5_r7write = '1' and stage4_regA1 = "111") then
       nforward4_regA1 := '1';
       nforward4_dataA1 := stage5_data(31 downto 16);
+      nforward4_stageA1 := "101";
     elsif (stage6_regwrite = '1' and stage4_regA1 = stage6_writeA3) then
       nforward4_regA1 := '1';
       nforward4_dataA1 := stage6_data(15 downto 0);
+      nforward4_stageA1 := "110";
     elsif (stage6_r7write = '1' and stage4_regA1 = "111") then
       nforward4_regA1 := '1';
       nforward4_dataA1 := stage6_data(31 downto 16);
+      nforward4_stageA1 := "110";
     else
       nforward4_regA1 := '0';
       nforward4_dataA1 := (others => '0');
+      nforward4_stageA1 := (others => '0');
     end if;
   else
     nforward4_regA1 := '0';
     nforward4_dataA1 := (others => '0');
+    nforward4_stageA1 := (others => '0');
   end if;
 
   -- Current opcodes include all ADDs, NDUs, SW, SM, BEQ, JLR
@@ -274,22 +288,28 @@ begin
     if (stage5_regwrite = '1' and stage4_regA2 = stage5_writeA3) then
       nforward4_regA2 := '1';
       nforward4_dataA2 := stage5_data(15 downto 0);
+      nforward4_stageA2 := "101";
     elsif (stage5_r7write = '1' and stage4_regA2 = "111") then
       nforward4_regA2 := '1';
       nforward4_dataA2 := stage5_data(31 downto 16);
+      nforward4_stageA2 := "101";
     elsif (stage6_regwrite = '1' and stage4_regA2 = stage6_writeA3) then
       nforward4_regA2 := '1';
       nforward4_dataA2 := stage6_data(15 downto 0);
+      nforward4_stageA2 := "110";
     elsif (stage6_r7write = '1' and stage4_regA2 = "111") then
       nforward4_regA2 := '1';
       nforward4_dataA2 := stage6_data(31 downto 16);
+      nforward4_stageA2 := "110";
     else
       nforward4_regA2 := '0';
       nforward4_dataA2 := (others => '0');
+      nforward4_stageA2 := (others => '0');
     end if;
   else
     nforward4_regA2 := '0';
     nforward4_dataA2 := (others => '0');
+    nforward4_stageA2 := (others => '0');
   end if;
 
   if (reset = '1') then
@@ -297,11 +317,15 @@ begin
     forward4_dataA1 <= (others => '0');
     forward4_regA2 <= '0';
     forward4_dataA2 <= (others => '0');
+    forward4_stageA1 <= (others => '0');
+    forward4_stageA2 <= (others => '0');
   else
     forward4_regA1 <= nforward4_regA1;
     forward4_dataA1 <= nforward4_dataA1;
     forward4_regA2 <= nforward4_regA2;
     forward4_dataA2 <= nforward4_dataA2;
+    forward4_stageA1 <= nforward4_stageA1;
+    forward4_stageA2 <= nforward4_stageA2;
   end if;
 end process;
 

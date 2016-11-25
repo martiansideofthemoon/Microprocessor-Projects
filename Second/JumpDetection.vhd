@@ -189,7 +189,7 @@ begin
       -- ADC / NDC instruction with writeA3 = R7
       if (flag_condition(0) = '1') then
         --checks if carry is high
-        if (pc_hit = '1' and next_pc_addr = alu_output) then
+        if (next_pc_addr = alu_output) then
           -- Successful jump
           njump := '0';
           njump_address := (others => '0');
@@ -198,7 +198,7 @@ begin
           njump_address := alu_output;
         end if;
       else
-        if (pc_hit = '1' and pc_history = '0') then
+        if (next_pc_addr = std_logic_vector(unsigned(curr_pc_addr) + 1)) then
           njump := '0';
           njump_address := (others => '0');
         else
@@ -210,7 +210,7 @@ begin
       -- ADZ / NDZ instruction with writeA3 = R7
       if (flag_condition(1) = '1') then
         --checks if zero is high
-        if (pc_hit = '1' and next_pc_addr = alu_output) then
+        if (next_pc_addr = alu_output) then
           -- Successful jump
           njump := '0';
           njump_address := (others => '0');
@@ -219,7 +219,7 @@ begin
           njump_address := alu_output;
         end if;
       else
-        if (pc_hit = '1' and pc_history = '0') then
+        if (next_pc_addr = std_logic_vector(unsigned(curr_pc_addr) + 1)) then
           njump := '0';
           njump_address := (others => '0');
         else
