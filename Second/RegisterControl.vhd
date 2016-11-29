@@ -127,7 +127,7 @@ begin
 end process;
 
 
-process(enable_signals, kill_stage1, kill_stage2, kill_stage3, kill_stage4)
+process(enable_signals, kill_stage1, kill_stage2, kill_stage3, kill_stage4, reset)
   variable npc_enable: std_logic;
   variable np1_enable: std_logic;
   variable np2_enable: std_logic;

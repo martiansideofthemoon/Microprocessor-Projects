@@ -369,11 +369,11 @@ architecture Behave of DataRegister is
 begin
   process(clk)
   begin
-    if (reset = '1') then
-      Dout <= (others => '0');
-    end if;
     if(clk'event and (clk  = '1')) then
-      if(enable = '1') then
+      if (reset = '1') then
+        Dout <= (others => '0');
+      
+      elsif(enable = '1') then
         Dout <= Din;
       end if;
     end if;

@@ -3,12 +3,28 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library std;
 use std.textio.all;
-library work;
-use work.ProcessorComponents.all;
+--library work;
+--use work.ProcessorComponents.all;
 
 entity Testbench is
 end entity;
 architecture Behave of Testbench is
+  component Datapath is
+  port (
+    clk, reset: in std_logic;
+
+    -- Data coming from outside
+    external_r0: out std_logic_vector(15 downto 0);
+    external_r1: out std_logic_vector(15 downto 0);
+    external_r2: out std_logic_vector(15 downto 0);
+    external_r3: out std_logic_vector(15 downto 0);
+    external_r4: out std_logic_vector(15 downto 0);
+    external_r5: out std_logic_vector(15 downto 0);
+    external_r6: out std_logic_vector(15 downto 0)
+  );
+  end component;
+
+
   signal clk: std_logic := '0';
   signal reset: std_logic := '1';
   signal external_r0: std_logic_vector(15 downto 0);
@@ -74,6 +90,7 @@ begin
 
   begin
     --addr <= "0000000000000000";
+    wait until clk = '1';
     wait until clk = '1';
 
     reset <= '0';

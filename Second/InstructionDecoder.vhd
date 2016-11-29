@@ -58,7 +58,7 @@ begin
   jump_output(0) <= is_jump;
   jump_output(3 downto 1) <= jump_stage(2 downto 0);
 
-  process(instruction, op_code, carry_logic)
+  process(instruction, op_code, carry_logic, reset)
     variable npc_updated: std_logic := '0';
     variable nis_jump: std_logic := '0';
   begin

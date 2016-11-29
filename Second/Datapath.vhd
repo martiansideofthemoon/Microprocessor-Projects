@@ -259,6 +259,7 @@ begin
     pc_stage3_flag => jump_stage3,
     pc_stage4_flag => jump_stage4,
     pc_stage5_flag => jump_stage5,
+    -- out signals
     pc_forwarding_out => PC_BRANCH_ADDRESS,
     pc_forwarding => pc_branch_forward,
     kill1 => kill_stage1,
@@ -327,6 +328,7 @@ begin
         priority_select => priority_select_in,
         clock => clk,
         reset => reset,
+        -- output
         input_zero => pl_input_zero,
         output => PL_WRITE,
         offset => PL_OFFSET,
@@ -488,7 +490,8 @@ begin
   P3_DATA_IN(15 downto 0) <= SE6_OUT when P2_OUT(25 downto 24) = "01" else
                              FINAL_DATA2 when P2_OUT(25 downto 24) = "00" else
                              ZERO_PAD9 when P2_OUT(25 downto 24) = "10" else
-                             P2_DATA_OUT(31 downto 16) when P2_OUT(25 downto 24) = "11";
+                             P2_DATA_OUT(31 downto 16) when P2_OUT(25 downto 24) = "11" else
+                             (others => '0');
   P3_JUMP_DATA_IN(21 downto 0) <= P2_JUMP_DATA;
   P3_JUMP_DATA_IN(37 downto 22) <= BRANCH_ADDR;
   P3_CACHE_DATA_IN <= (others => '0') when kill_stage3 = '1' else
